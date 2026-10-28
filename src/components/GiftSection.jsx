@@ -186,13 +186,8 @@ export default function GiftSection() {
       const data = isJson ? await response.json() : null;
 
       if (response.ok && data?.invoiceUrl) {
-        // Buka URL Checkout Xendit di tab baru
-        const checkoutTab = window.open(data.invoiceUrl, "_blank");
-        if (!checkoutTab) {
-          // Jika diblokir oleh popup-blocker browser, lakukan redirect langsung
-          window.location.href = data.invoiceUrl;
-        }
-        handleCloseModal();
+        // Redirect langsung ke URL Checkout Xendit
+        window.location.href = data.invoiceUrl;
       } else {
         const errorMsg =
           data?.message ||
