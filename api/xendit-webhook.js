@@ -1,3 +1,13 @@
+function formatSupabaseUrl(url) {
+  if (!url) return "";
+  let clean = url.trim().replace(/\/$/, "");
+  if (clean.includes("supabase.com/dashboard/project/")) {
+    const projectId = clean.split("/project/")[1]?.split("/")[0];
+    if (projectId) return `https://${projectId}.supabase.co`;
+  }
+  return clean;
+}
+
 export default async function handler(req, res) {
   // Hanya izinkan HTTP POST dari Xendit
   if (req.method !== "POST") {
@@ -30,22 +40,21 @@ export default async function handler(req, res) {
 
   // Hanya proses jika status transaksi sudah dibayar (PAID atau SETTLED)
   if (status === "PAID" || status === "SETTLED") {
-    const supabaseUrl = process.env.SUPABASE_URL;
+    const rawUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!rawUrl || !supabaseKey) {
       console.error("[Webhook] Supabase environment variables belum diatur.");
       return res.status(500).json({ message: "Database config missing" });
     }
 
+    const supabaseUrl = formatSupabaseUrl(rawUrl);
+
     try {
       // Ambil giftId dari format: GIFT-<giftId>-<timestamp>
-      // Contoh: GIFT-smart-tv-1729019283
       let giftId = null;
       if (currentExternalId && currentExternalId.startsWith("GIFT-")) {
         const parts = currentExternalId.split("-");
-        // Jika ada 3 bagian atau lebih (karena giftId bisa mengandung strip, misal smart-tv)
-        // Ambil elemen antara "GIFT" dan timestamp terakhir
         if (parts.length >= 3) {
           giftId = parts.slice(1, -1).join("-");
         }
@@ -104,6 +113,5 @@ export default async function handler(req, res) {
     }
   }
 
-  // Jika status bukan PAID (misal EXPIRED atau PENDING), cukup respon 200 OK
   return res.status(200).json({ message: `Status ${status} diabaikan (hanya memproses PAID/SETTLED)` });
 }

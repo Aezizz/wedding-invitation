@@ -1,14 +1,26 @@
+function formatSupabaseUrl(url) {
+  if (!url) return "";
+  let clean = url.trim().replace(/\/$/, "");
+  if (clean.includes("supabase.com/dashboard/project/")) {
+    const projectId = clean.split("/project/")[1]?.split("/")[0];
+    if (projectId) return `https://${projectId}.supabase.co`;
+  }
+  return clean;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const rawUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!rawUrl || !supabaseKey) {
     return res.status(500).json({ message: "Supabase environment variables belum diatur." });
   }
+
+  const supabaseUrl = formatSupabaseUrl(rawUrl);
 
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/gifts?select=*&order=target.desc`, {
