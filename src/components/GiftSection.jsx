@@ -18,7 +18,8 @@ const initialGifts = [
     target: 12000000,
     collected: 4200000,
     icon: "🧊",
-    description: "Kebutuhan esensial untuk menyimpan bahan makanan segar keluarga.",
+    description:
+      "Kebutuhan esensial untuk menyimpan bahan makanan segar keluarga.",
   },
   {
     id: "sofa",
@@ -27,7 +28,8 @@ const initialGifts = [
     target: 5000000,
     collected: 4000000,
     icon: "🛋️",
-    description: "Sofa nyaman bernuansa earth-tone untuk menyambut hangat para tamu.",
+    description:
+      "Sofa nyaman bernuansa earth-tone untuk menyambut hangat para tamu.",
   },
 ];
 
@@ -35,11 +37,41 @@ const initialGifts = [
 const QUICK_AMOUNTS = [50000, 100000, 250000, 500000];
 
 export default function GiftSection() {
-  const [gifts] = useState(initialGifts);
+  const [gifts, setGifts] = useState(initialGifts);
   const [selectedGift, setSelectedGift] = useState(null);
   const [donorName, setDonorName] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Ambil data progres terkumpul terbaru secara live dari Supabase via API
+  useEffect(() => {
+    async function fetchLatestGifts() {
+      try {
+        const res = await fetch("/api/get-gifts");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.gifts && Array.isArray(data.gifts)) {
+            setGifts((prevGifts) =>
+              prevGifts.map((localGift) => {
+                const remoteGift = data.gifts.find((g) => g.id === localGift.id);
+                return remoteGift
+                  ? {
+                      ...localGift,
+                      collected: Number(remoteGift.collected),
+                      target: Number(remoteGift.target || localGift.target),
+                    }
+                  : localGift;
+              })
+            );
+          }
+        }
+      } catch (err) {
+        console.warn("Gagal sinkronisasi data kado dari database:", err);
+      }
+    }
+
+    fetchLatestGifts();
+  }, []);
 
   // Inisialisasi status toast langsung dari query parameter
   const [toastMessage, setToastMessage] = useState(() => {
@@ -72,6 +104,17 @@ export default function GiftSection() {
     if (params.has("status")) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+  }, []);
+
+  useEffect(() => {
+    async function loadGifts() {
+      // Ambil data terbaru langsung dari Supabase
+      const { data } = await supabase.from("gifts").select("*");
+      if (data && data.length > 0) {
+        setGifts(data); // Progress bar otomatis ter-update sesuai nominal asli!
+      }
+    }
+    loadGifts();
   }, []);
 
   // Format angka ke format mata uang Rupiah
@@ -114,6 +157,7 @@ export default function GiftSection() {
         },
         body: JSON.stringify({
           amount: numericAmount,
+          giftId: selectedGift.id,
           giftTitle: selectedGift.title,
           donorName: donorName.trim() || "Tamu Undangan",
         }),
@@ -125,15 +169,15 @@ export default function GiftSection() {
       // Fallback deteksi jika berjalan di standard Vite dev server tanpa Vercel runtime
       if (!response.ok && (!isJson || response.status === 404)) {
         console.warn(
-          "[Dev-Mode Notice] Endpoint /api/create-xendit-invoice tidak aktif atau tidak mendukung serverless di Vite server reguler."
+          "[Dev-Mode Notice] Endpoint /api/create-xendit-invoice tidak aktif atau tidak mendukung serverless di Vite server reguler.",
         );
         alert(
           `[Simulasi Mode Dev / Vite Standar]\n\n` +
-          `Terima kasih banyak, ${donorName.trim() || "Tamu Undangan"}!\n` +
-          `Hadiah: ${selectedGift.title}\n` +
-          `Nominal Patungan: ${formatRupiah(numericAmount)}\n\n` +
-          `Catatan Pengembang:\n` +
-          `Serverless function /api/create-xendit-invoice berjalan optimal dengan Vercel CLI ('vercel dev') atau pada saat deployment Vercel. Di server produksi, invoice Xendit akan dibuat dan tab pembayaran otomatis terbuka.`
+            `Terima kasih banyak, ${donorName.trim() || "Tamu Undangan"}!\n` +
+            `Hadiah: ${selectedGift.title}\n` +
+            `Nominal Patungan: ${formatRupiah(numericAmount)}\n\n` +
+            `Catatan Pengembang:\n` +
+            `Serverless function /api/create-xendit-invoice berjalan optimal dengan Vercel CLI ('vercel dev') atau pada saat deployment Vercel. Di server produksi, invoice Xendit akan dibuat dan tab pembayaran otomatis terbuka.`,
         );
         handleCloseModal();
         return;
@@ -151,7 +195,8 @@ export default function GiftSection() {
         handleCloseModal();
       } else {
         const errorMsg =
-          data?.message || `Gagal menghubungi server (Status: ${response.status})`;
+          data?.message ||
+          `Gagal menghubungi server (Status: ${response.status})`;
         alert("Gagal memproses transaksi Xendit: " + errorMsg);
       }
     } catch (err) {
@@ -159,10 +204,10 @@ export default function GiftSection() {
       // Fallback Dev Mode jika fetch gagal total (misal network error / endpoint tidak ada)
       alert(
         `[Simulasi Mode Dev / Vite Standar]\n\n` +
-        `Koneksi ke endpoint /api/create-xendit-invoice gagal:\n${err.message}\n\n` +
-        `Terima kasih telah berpartisipasi patungan untuk ${selectedGift.title} sebesar ${formatRupiah(
-          numericAmount
-        )}!`
+          `Koneksi ke endpoint /api/create-xendit-invoice gagal:\n${err.message}\n\n` +
+          `Terima kasih telah berpartisipasi patungan untuk ${selectedGift.title} sebesar ${formatRupiah(
+            numericAmount,
+          )}!`,
       );
       handleCloseModal();
     } finally {
@@ -171,7 +216,10 @@ export default function GiftSection() {
   };
 
   return (
-    <section id="hadiah" className="py-20 px-6 max-w-4xl mx-auto text-center scroll-mt-10">
+    <section
+      id="hadiah"
+      className="py-20 px-6 max-w-4xl mx-auto text-center scroll-mt-10"
+    >
       {/* Toast Notifikasi Status Pembayaran */}
       {toastMessage && (
         <div
@@ -209,8 +257,9 @@ export default function GiftSection() {
       </h2>
       <div className="w-12 h-[1px] bg-accent/40 mx-auto mb-4" />
       <p className="text-xs text-charcoal/70 max-w-md mx-auto mb-10 leading-relaxed">
-        Doa restu Anda adalah karunia terindah. Namun jika ingin memberikan tanda cinta,
-        Anda dapat turut serta berpatungan mewujudkan impian rumah tangga kami.
+        Doa restu Anda adalah karunia terindah. Namun jika ingin memberikan
+        tanda cinta, Anda dapat turut serta berpatungan mewujudkan impian rumah
+        tangga kami.
       </p>
 
       {/* Grid 3 Kartu Target Hadiah */}
@@ -218,7 +267,7 @@ export default function GiftSection() {
         {gifts.map((item) => {
           const percent = Math.min(
             Math.round((item.collected / item.target) * 100),
-            100
+            100,
           );
           const remaining = Math.max(item.target - item.collected, 0);
 
@@ -248,7 +297,9 @@ export default function GiftSection() {
                 {/* Progress Detail */}
                 <div className="bg-white/40 p-3 rounded-2xl border border-secondary/10 mb-3">
                   <div className="flex justify-between items-baseline text-xs mb-1">
-                    <span className="text-charcoal/60 text-[11px]">Terkumpul</span>
+                    <span className="text-charcoal/60 text-[11px]">
+                      Terkumpul
+                    </span>
                     <span className="font-bold text-charcoal">
                       {formatRupiah(item.collected)}
                     </span>
@@ -334,7 +385,7 @@ export default function GiftSection() {
                 <span className="font-semibold text-secondary">
                   {formatRupiah(selectedGift.collected)} (
                   {Math.round(
-                    (selectedGift.collected / selectedGift.target) * 100
+                    (selectedGift.collected / selectedGift.target) * 100,
                   )}
                   %)
                 </span>

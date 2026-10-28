@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     }
   }
 
-  const { amount, giftTitle, donorName } = body || {};
+  const { amount, giftTitle, donorName, giftId } = body || {};
 
   if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
     return res.status(400).json({ message: "Nominal patungan tidak valid" });
@@ -46,7 +46,8 @@ export default async function handler(req, res) {
   const origin =
     req.headers.origin || (host ? `${protocol}://${host}` : "http://localhost:5173");
 
-  const externalId = `GIFT-${Date.now()}`;
+  const safeGiftId = giftId ? String(giftId).replace(/[^a-zA-Z0-9_-]/g, "") : "general";
+  const externalId = `GIFT-${safeGiftId}-${Date.now()}`;
   const payerName = donorName && donorName.trim() ? donorName.trim() : "Tamu Undangan";
   const description = `Patungan Hadiah ${giftTitle || "Pernikahan"} oleh ${payerName}`;
 
