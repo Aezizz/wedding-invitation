@@ -1,0 +1,83 @@
+/* Panggil Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap");
+
+/* Entry point utama untuk Tailwind v4 murni */
+@import "tailwindcss";
+
+/* Setup Design System langsung di dalam CSS (Standar Tailwind v4) */
+@theme {
+  --color-primary: #fdfbf7;
+  --color-secondary: #7a8b7b;
+  --color-accent: #b8978e;
+  --color-charcoal: #2c3e50;
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+/* Reset dasar DOM */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+#root {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  background-color: var(--color-primary);
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Utility kustom untuk Glassmorphism premium */
+.glass-card {
+  background: rgba(253, 251, 247, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(122, 139, 123, 0.15);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

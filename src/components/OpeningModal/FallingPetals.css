@@ -1,0 +1,22 @@
+.petals {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  
+  .petal {
+    position: absolute;
+    top: -40px;
+    opacity: 0;
+    color: #c9896a; /* rose-gold */
+    animation: fall linear infinite;
+  }
+  
+  @keyframes fall {
+    0%   { opacity: 0; transform: translateY(0) translateX(0) rotate(0deg); }
+    8%   { opacity: 0.55; }
+    92%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(110vh) translateX(var(--drift, 40px)) rotate(220deg); }
+  }
