@@ -80,6 +80,8 @@ export default async function handler(req, res) {
           customer: {
             givenNames: payerName,
           },
+          currency: "IDR",
+          invoiceDuration: 86400,
           successRedirectUrl: `${origin}/?status=success`,
           failureRedirectUrl: `${origin}/?status=failed`,
         },
