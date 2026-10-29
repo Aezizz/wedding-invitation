@@ -32,14 +32,35 @@ export default async function handler(req, res) {
     }
   }
 
-  const { status, external_id, externalId, amount, paid_amount } = body || {};
-  const currentExternalId = external_id || externalId;
-  const finalAmount = Number(paid_amount || amount || 0);
+  // Deteksi tipe callback:
+  // 1. QR Code Payment: event === 'qr.payment'
+  // 2. Virtual Account Payment: memiliki payment_id / bank_code & account_number
+  // 3. Invoice Payment: status === 'PAID' atau 'SETTLED'
+  const isQrPayment = body?.event === "qr.payment";
+  const isVaPayment = Boolean(body?.payment_id && body?.account_number) || Boolean(body?.bank_code && body?.account_number);
+  const isInvoicePayment = body?.status === "PAID" || body?.status === "SETTLED";
 
-  console.log(`[Webhook] Menerima notifikasi Xendit: ExternalID=${currentExternalId}, Status=${status}, Amount=${finalAmount}`);
+  const isPaid = isQrPayment || isVaPayment || isInvoicePayment;
 
-  // Hanya proses jika status transaksi sudah dibayar (PAID atau SETTLED)
-  if (status === "PAID" || status === "SETTLED") {
+  // Ekstraksi External ID & Amount secara dinamis
+  let currentExternalId =
+    body?.external_id ||
+    body?.externalId ||
+    body?.reference_id ||
+    body?.qr_code?.external_id ||
+    body?.qr_code?.reference_id;
+
+  let finalAmount = Number(
+    body?.paid_amount ||
+    body?.amount ||
+    body?.qr_code?.amount ||
+    0
+  );
+
+  console.log(`[Webhook] Notifikasi masuk: IsPaid=${isPaid}, ExternalID=${currentExternalId}, Amount=${finalAmount}`);
+
+  // Hanya proses jika pembayaran valid
+  if (isPaid && currentExternalId && finalAmount > 0) {
     const rawUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
@@ -53,7 +74,7 @@ export default async function handler(req, res) {
     try {
       // Ambil giftId dari format: GIFT-<giftId>-<timestamp>
       let giftId = null;
-      if (currentExternalId && currentExternalId.startsWith("GIFT-")) {
+      if (currentExternalId.startsWith("GIFT-")) {
         const parts = currentExternalId.split("-");
         if (parts.length >= 3) {
           giftId = parts.slice(1, -1).join("-");
@@ -62,7 +83,7 @@ export default async function handler(req, res) {
 
       if (!giftId) {
         console.warn(`[Webhook] Tidak dapat mengekstrak giftId dari ExternalID: ${currentExternalId}`);
-        return res.status(200).json({ message: "Invoice processed without gift assignment" });
+        return res.status(200).json({ message: "Payment processed without gift assignment" });
       }
 
       // 1. Ambil data kado saat ini dari Supabase
@@ -113,5 +134,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ message: `Status ${status} diabaikan (hanya memproses PAID/SETTLED)` });
+  return res.status(200).json({ message: `Status diabaikan (hanya memproses event pembayaran lunas)` });
 }
