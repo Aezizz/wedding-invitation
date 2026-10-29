@@ -43,35 +43,63 @@ export default function GiftSection() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Ambil data progres terkumpul terbaru secara live dari Supabase via API
+  // Status alur modal: "input" | "waiting" | "success"
+  const [paymentStep, setPaymentStep] = useState("input");
+  const [activeInvoiceUrl, setActiveInvoiceUrl] = useState("");
+  const [initialCollected, setInitialCollected] = useState(0);
+  const [checkingPayment, setCheckingPayment] = useState(false);
+
+  // Fungsi helper untuk mengambil data kado terbaru dari database
+  const refreshGiftsFromDatabase = async () => {
+    try {
+      const res = await fetch("/api/get-gifts");
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.gifts && Array.isArray(data.gifts)) {
+          setGifts((prevGifts) =>
+            prevGifts.map((localGift) => {
+              const remoteGift = data.gifts.find((g) => g.id === localGift.id);
+              return remoteGift
+                ? {
+                    ...localGift,
+                    collected: Number(remoteGift.collected),
+                    target: Number(remoteGift.target || localGift.target),
+                  }
+                : localGift;
+            })
+          );
+          return data.gifts;
+        }
+      }
+    } catch (err) {
+      console.warn("Gagal sinkronisasi data kado dari database:", err);
+    }
+    return null;
+  };
+
+  // Ambil data progres terkumpul terbaru secara live dari Supabase via API saat pertama dimuat
   useEffect(() => {
-    async function fetchLatestGifts() {
-      try {
-        const res = await fetch("/api/get-gifts");
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.gifts && Array.isArray(data.gifts)) {
-            setGifts((prevGifts) =>
-              prevGifts.map((localGift) => {
-                const remoteGift = data.gifts.find((g) => g.id === localGift.id);
-                return remoteGift
-                  ? {
-                      ...localGift,
-                      collected: Number(remoteGift.collected),
-                      target: Number(remoteGift.target || localGift.target),
-                    }
-                  : localGift;
-              })
-            );
+    refreshGiftsFromDatabase();
+  }, []);
+
+  // Polling otomatis setiap 3 detik saat dalam status "waiting" (menunggu tamu transfer)
+  useEffect(() => {
+    let intervalId;
+    if (paymentStep === "waiting" && selectedGift) {
+      intervalId = setInterval(async () => {
+        const latestGifts = await refreshGiftsFromDatabase();
+        if (latestGifts) {
+          const currentTarget = latestGifts.find((g) => g.id === selectedGift.id);
+          if (currentTarget && Number(currentTarget.collected) > initialCollected) {
+            // Webhook Xendit telah berhasil memperbarui Supabase!
+            setPaymentStep("success");
+            clearInterval(intervalId);
           }
         }
-      } catch (err) {
-        console.warn("Gagal sinkronisasi data kado dari database:", err);
-      }
+      }, 3000);
     }
-
-    fetchLatestGifts();
-  }, []);
+    return () => clearInterval(intervalId);
+  }, [paymentStep, selectedGift, initialCollected]);
 
   // Inisialisasi status toast langsung dari query parameter
   const [toastMessage, setToastMessage] = useState(() => {
@@ -106,17 +134,6 @@ export default function GiftSection() {
     }
   }, []);
 
-  useEffect(() => {
-    async function loadGifts() {
-      // Ambil data terbaru langsung dari Supabase
-      const { data } = await supabase.from("gifts").select("*");
-      if (data && data.length > 0) {
-        setGifts(data); // Progress bar otomatis ter-update sesuai nominal asli!
-      }
-    }
-    loadGifts();
-  }, []);
-
   // Format angka ke format mata uang Rupiah
   const formatRupiah = (val) => {
     return new Intl.NumberFormat("id-ID", {
@@ -129,12 +146,18 @@ export default function GiftSection() {
   const handleOpenModal = (gift) => {
     setSelectedGift(gift);
     setAmount("");
+    setPaymentStep("input");
+    setActiveInvoiceUrl("");
+    setInitialCollected(gift.collected || 0);
   };
 
   const handleCloseModal = () => {
     if (!loading) {
       setSelectedGift(null);
       setAmount("");
+      setPaymentStep("input");
+      setActiveInvoiceUrl("");
+      setCheckingPayment(false);
     }
   };
 
@@ -186,8 +209,16 @@ export default function GiftSection() {
       const data = isJson ? await response.json() : null;
 
       if (response.ok && data?.invoiceUrl) {
-        // Redirect langsung ke URL Checkout Xendit
-        window.location.href = data.invoiceUrl;
+        setActiveInvoiceUrl(data.invoiceUrl);
+        setInitialCollected(selectedGift.collected || 0);
+        setPaymentStep("waiting");
+
+        // Buka URL Checkout Xendit di tab baru
+        const checkoutTab = window.open(data.invoiceUrl, "_blank");
+        if (!checkoutTab) {
+          // Jika browser memblokir popup otomatis, user tetap bisa klik tombol di modal
+          console.warn("Popup diblokir oleh browser. Tombol pembuka manual tersedia.");
+        }
       } else {
         const errorMsg =
           data?.message ||
@@ -196,7 +227,6 @@ export default function GiftSection() {
       }
     } catch (err) {
       console.error("Xendit Payment Request Error:", err);
-      // Fallback Dev Mode jika fetch gagal total (misal network error / endpoint tidak ada)
       alert(
         `[Simulasi Mode Dev / Vite Standar]\n\n` +
           `Koneksi ke endpoint /api/create-xendit-invoice gagal:\n${err.message}\n\n` +
@@ -207,6 +237,22 @@ export default function GiftSection() {
       handleCloseModal();
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Tombol cek status manual oleh tamu
+  const handleManualCheck = async () => {
+    setCheckingPayment(true);
+    const latestGifts = await refreshGiftsFromDatabase();
+    setCheckingPayment(false);
+
+    if (latestGifts && selectedGift) {
+      const currentTarget = latestGifts.find((g) => g.id === selectedGift.id);
+      if (currentTarget && Number(currentTarget.collected) > initialCollected) {
+        setPaymentStep("success");
+      } else {
+        alert("Pembayaran belum terdeteksi. Jika baru saja transfer/scan, mohon tunggu beberapa detik lalu tekan tombol ini lagi.");
+      }
     }
   };
 
@@ -338,7 +384,7 @@ export default function GiftSection() {
         })}
       </div>
 
-      {/* FLYING CARD MODAL (Popup Overlay Form) */}
+      {/* FLYING CARD MODAL (Popup Overlay Form & Live Tracker) */}
       {selectedGift && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div
@@ -367,123 +413,251 @@ export default function GiftSection() {
               </h3>
             </div>
 
-            {/* Milestone Summary Card */}
-            <div className="bg-white/60 p-3.5 rounded-2xl mb-5 border border-secondary/15">
-              <div className="flex justify-between items-center text-xs mb-1">
-                <span className="text-charcoal/70">Target Kado:</span>
-                <span className="font-bold text-charcoal">
-                  {formatRupiah(selectedGift.target)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-charcoal/70">Telah Terkumpul:</span>
-                <span className="font-semibold text-secondary">
-                  {formatRupiah(selectedGift.collected)} (
-                  {Math.round(
-                    (selectedGift.collected / selectedGift.target) * 100,
-                  )}
-                  %)
-                </span>
-              </div>
-            </div>
+            {/* KONDISI 1: FORM INPUT PEMBAYARAN */}
+            {paymentStep === "input" && (
+              <>
+                {/* Milestone Summary Card */}
+                <div className="bg-white/60 p-3.5 rounded-2xl mb-5 border border-secondary/15">
+                  <div className="flex justify-between items-center text-xs mb-1">
+                    <span className="text-charcoal/70">Target Kado:</span>
+                    <span className="font-bold text-charcoal">
+                      {formatRupiah(selectedGift.target)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-charcoal/70">Telah Terkumpul:</span>
+                    <span className="font-semibold text-secondary">
+                      {formatRupiah(selectedGift.collected)} (
+                      {Math.round(
+                        (selectedGift.collected / selectedGift.target) * 100,
+                      )}
+                      %)
+                    </span>
+                  </div>
+                </div>
 
-            {/* Form Input Pembayaran */}
-            <form onSubmit={handlePay} className="flex flex-col gap-4">
-              <div>
-                <label className="text-[11px] font-semibold uppercase text-charcoal/80 tracking-wider block mb-1">
-                  Nama Anda / Tamu
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Budi Santoso"
-                  className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal focus:outline-none focus:border-secondary transition-colors"
-                  value={donorName}
-                  onChange={(e) => setDonorName(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold uppercase text-charcoal/80 tracking-wider block mb-1">
-                  Nominal Patungan (Rp)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Contoh: 100000"
-                  required
-                  min="10000"
-                  step="1000"
-                  className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal font-medium focus:outline-none focus:border-secondary transition-colors"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={loading}
-                />
-
-                {/* Quick Amount Chips */}
-                <div className="grid grid-cols-4 gap-1.5 mt-2">
-                  {QUICK_AMOUNTS.map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAmount(val.toString())}
+                {/* Form Input Pembayaran */}
+                <form onSubmit={handlePay} className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase text-charcoal/80 tracking-wider block mb-1">
+                      Nama Anda / Tamu
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Budi Santoso"
+                      className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal focus:outline-none focus:border-secondary transition-colors"
+                      value={donorName}
+                      onChange={(e) => setDonorName(e.target.value)}
                       disabled={loading}
-                      className={`text-[10px] py-1.5 px-1 rounded-lg border text-center transition-all cursor-pointer font-medium ${
-                        amount === val.toString()
-                          ? "bg-secondary text-primary border-secondary"
-                          : "bg-white/50 border-secondary/20 text-charcoal/80 hover:bg-secondary/10"
-                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase text-charcoal/80 tracking-wider block mb-1">
+                      Nominal Patungan (Rp)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Contoh: 100000"
+                      required
+                      min="10000"
+                      step="1000"
+                      className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal font-medium focus:outline-none focus:border-secondary transition-colors"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      disabled={loading}
+                    />
+
+                    {/* Quick Amount Chips */}
+                    <div className="grid grid-cols-4 gap-1.5 mt-2">
+                      {QUICK_AMOUNTS.map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setAmount(val.toString())}
+                          disabled={loading}
+                          className={`text-[10px] py-1.5 px-1 rounded-lg border text-center transition-all cursor-pointer font-medium ${
+                            amount === val.toString()
+                              ? "bg-secondary text-primary border-secondary"
+                              : "bg-white/50 border-secondary/20 text-charcoal/80 hover:bg-secondary/10"
+                          }`}
+                        >
+                          {val >= 1000000
+                            ? `${val / 1000000} Jt`
+                            : `${val / 1000} Rb`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Info Keamanan Pembayaran */}
+                  <div className="flex items-center gap-2 text-[10px] text-charcoal/60 bg-secondary/5 p-2 rounded-xl border border-secondary/10">
+                    <span>🔒</span>
+                    <span>
+                      Pembayaran aman via QRIS, Virtual Account, & E-Wallet (Xendit)
+                    </span>
+                  </div>
+
+                  {/* Tombol Submit Pembayaran */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full mt-1 py-3.5 bg-secondary text-primary font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md hover:bg-secondary/90 transition-all cursor-pointer active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin h-4 w-4 text-primary"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>MENGHUBUNGKAN KE XENDIT...</span>
+                      </>
+                    ) : (
+                      <span>BAYAR DENGAN XENDIT</span>
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* KONDISI 2: MENUNGGU PEMBAYARAN (LIVE TRACKER AUTO-CHECK) */}
+            {paymentStep === "waiting" && (
+              <div className="flex flex-col items-center text-center py-4 animate-fade-in">
+                {/* Indikator Animasi Pulsa Menunggu */}
+                <div className="relative flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-accent/20 animate-ping absolute"></div>
+                  <div className="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center text-2xl relative">
+                    ⏳
+                  </div>
+                </div>
+
+                <h4 className="font-serif text-lg font-bold text-secondary mb-1">
+                  Menunggu Pembayaran
+                </h4>
+                <p className="text-xs text-charcoal/70 mb-4 leading-relaxed max-w-xs">
+                  Halaman pembayaran telah dibuka di tab baru. Silakan selesaikan patungan sebesar{" "}
+                  <strong className="text-secondary">{formatRupiah(Number(amount))}</strong>.
+                </p>
+
+                {/* Status Otomatis & Tombol Cek Manual */}
+                <div className="w-full bg-white/60 p-3.5 rounded-2xl border border-secondary/15 mb-4 flex flex-col gap-2 text-left">
+                  <div className="flex items-center gap-2 text-[11px] text-charcoal/80">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Sistem mengecek pembayaran otomatis...</span>
+                  </div>
+                  <span className="text-[10px] text-charcoal/50">
+                    Progress akan otomatis terupdate begitu transaksi Anda terverifikasi oleh Xendit.
+                  </span>
+                </div>
+
+                <div className="flex flex-col w-full gap-2">
+                  {/* Tombol buka ulang tab Xendit jika tertutup */}
+                  {activeInvoiceUrl && (
+                    <a
+                      href={activeInvoiceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 bg-secondary/10 text-secondary border border-secondary/25 font-semibold text-xs rounded-xl hover:bg-secondary/15 transition-all text-center block"
                     >
-                      {val >= 1000000
-                        ? `${val / 1000000} Jt`
-                        : `${val / 1000} Rb`}
-                    </button>
-                  ))}
+                      Buka Halaman Pembayaran ↗
+                    </a>
+                  )}
+
+                  {/* Tombol Cek Status Manual */}
+                  <button
+                    type="button"
+                    onClick={handleManualCheck}
+                    disabled={checkingPayment}
+                    className="w-full py-3 bg-secondary text-primary font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md hover:bg-secondary/90 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {checkingPayment ? (
+                      <>
+                        <svg
+                          className="animate-spin h-3.5 w-3.5 text-primary"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>MEMERIKSA STATUS...</span>
+                      </>
+                    ) : (
+                      <span>🔄 CEK STATUS PEMBAYARAN</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="text-[11px] text-charcoal/50 hover:text-charcoal mt-1 py-1"
+                  >
+                    Tutup Sementara (Bisa dicek nanti)
+                  </button>
                 </div>
               </div>
+            )}
 
-              {/* Info Keamanan Pembayaran */}
-              <div className="flex items-center gap-2 text-[10px] text-charcoal/60 bg-secondary/5 p-2 rounded-xl border border-secondary/10">
-                <span>🔒</span>
-                <span>
-                  Pembayaran aman via QRIS, Virtual Account, & E-Wallet (Xendit)
-                </span>
+            {/* KONDISI 3: PEMBAYARAN SUKSES / TERVERIFIKASI */}
+            {paymentStep === "success" && (
+              <div className="flex flex-col items-center text-center py-4 animate-fade-in">
+                {/* Animasi Ikon Sukses */}
+                <div className="w-16 h-16 rounded-full bg-[#7a8b7b]/20 text-[#7a8b7b] flex items-center justify-center text-3xl mb-3 shadow-inner">
+                  🎉
+                </div>
+
+                <h4 className="font-serif text-xl font-bold text-secondary mb-1">
+                  Pembayaran Berhasil!
+                </h4>
+                <p className="text-xs text-charcoal/80 mb-4 leading-relaxed max-w-xs">
+                  Terima kasih banyak,{" "}
+                  <strong className="text-secondary">{donorName.trim() || "Tamu Undangan"}</strong>!
+                  Patungan Anda sebesar{" "}
+                  <strong className="text-secondary">{formatRupiah(Number(amount))}</strong> telah
+                  berhasil ditambahkan ke kado {selectedGift.title}.
+                </p>
+
+                <div className="w-full bg-[#7a8b7b]/10 border border-[#7a8b7b]/30 p-3 rounded-2xl mb-4 text-xs text-charcoal/80">
+                  Target kado ini sekarang bertambah secara live! ✨
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="w-full py-3 bg-secondary text-primary font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md hover:bg-secondary/90 transition-all cursor-pointer"
+                >
+                  TUTUP
+                </button>
               </div>
-
-              {/* Tombol Submit Pembayaran */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-1 py-3.5 bg-secondary text-primary font-semibold text-xs tracking-wider uppercase rounded-xl shadow-md hover:bg-secondary/90 transition-all cursor-pointer active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin h-4 w-4 text-primary"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>MENGHUBUNGKAN KE XENDIT...</span>
-                  </>
-                ) : (
-                  <span>BAYAR DENGAN XENDIT</span>
-                )}
-              </button>
-            </form>
+            )}
           </div>
         </div>
       )}
