@@ -37,7 +37,9 @@ export default async function handler(req, res) {
   // 2. Virtual Account Payment: memiliki payment_id / bank_code & account_number
   // 3. Invoice Payment: status === 'PAID' atau 'SETTLED'
   const isQrPayment = body?.event === "qr.payment";
-  const isVaPayment = Boolean(body?.payment_id && body?.account_number) || Boolean(body?.bank_code && body?.account_number);
+  const isVaPayment =
+    Boolean(body?.payment_id && body?.account_number) ||
+    Boolean(body?.bank_code && body?.account_number);
   const isInvoicePayment = body?.status === "PAID" || body?.status === "SETTLED";
 
   const isPaid = isQrPayment || isVaPayment || isInvoicePayment;
@@ -57,7 +59,9 @@ export default async function handler(req, res) {
     0
   );
 
-  console.log(`[Webhook] Notifikasi masuk: IsPaid=${isPaid}, ExternalID=${currentExternalId}, Amount=${finalAmount}`);
+  console.log(
+    `[Webhook] Notifikasi masuk: IsPaid=${isPaid}, ExternalID=${currentExternalId}, Amount=${finalAmount}`
+  );
 
   // Hanya proses jika pembayaran valid
   if (isPaid && currentExternalId && finalAmount > 0) {
@@ -87,12 +91,15 @@ export default async function handler(req, res) {
       }
 
       // 1. Ambil data kado saat ini dari Supabase
-      const getRes = await fetch(`${supabaseUrl}/rest/v1/gifts?id=eq.${giftId}&select=id,collected,title`, {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      });
+      const getRes = await fetch(
+        `${supabaseUrl}/rest/v1/gifts?id=eq.${giftId}&select=id,collected,title`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        }
+      );
 
       if (!getRes.ok) {
         throw new Error(`Gagal membaca kado dari Supabase: ${getRes.status} ${await getRes.text()}`);
@@ -107,7 +114,7 @@ export default async function handler(req, res) {
       const targetGift = gifts[0];
       const newCollected = Number(targetGift.collected || 0) + finalAmount;
 
-      // 2. Perbarui kolom collected di Supabase
+      // 2. Perbarui kolom collected di Supabase tabel gifts
       const updateRes = await fetch(`${supabaseUrl}/rest/v1/gifts?id=eq.${giftId}`, {
         method: "PATCH",
         headers: {
@@ -123,7 +130,64 @@ export default async function handler(req, res) {
         throw new Error(`Gagal update Supabase: ${updateRes.status} ${await updateRes.text()}`);
       }
 
-      console.log(`[Webhook] Berhasil update kado '${targetGift.title}'! Nominal baru: Rp ${newCollected}`);
+      // 3. Update status transaksi di tabel transactions menjadi 'PAID'
+      const paidTimestamp = new Date().toISOString();
+      try {
+        const txPatchRes = await fetch(
+          `${supabaseUrl}/rest/v1/transactions?external_id=eq.${currentExternalId}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json",
+              Prefer: "return=representation",
+            },
+            body: JSON.stringify({
+              status: "PAID",
+              paid_at: paidTimestamp,
+            }),
+          }
+        );
+
+        if (txPatchRes.ok) {
+          const updatedTxs = await txPatchRes.json();
+          // Jika transaksi belum ada sebelumnya di tabel transactions, buat record baru
+          if (!updatedTxs || updatedTxs.length === 0) {
+            await fetch(`${supabaseUrl}/rest/v1/transactions`, {
+              method: "POST",
+              headers: {
+                apikey: supabaseKey,
+                Authorization: `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                external_id: currentExternalId,
+                donor_name:
+                  body?.payer_name ||
+                  body?.payment_detail?.name ||
+                  body?.name ||
+                  "Tamu Undangan",
+                gift_id: giftId,
+                gift_title: targetGift.title,
+                amount: finalAmount,
+                payment_method: isQrPayment ? "QRIS" : isVaPayment ? "VIRTUAL_ACCOUNT" : "INVOICE",
+                bank_code: body?.bank_code || null,
+                account_number: body?.account_number || null,
+                status: "PAID",
+                paid_at: paidTimestamp,
+              }),
+            });
+          }
+          console.log(`[Webhook] Berhasil mencatat status PAID di tabel transactions`);
+        }
+      } catch (txErr) {
+        console.warn("[Webhook DB Warning] Gagal mengupdate tabel transactions:", txErr);
+      }
+
+      console.log(
+        `[Webhook] Berhasil update kado '${targetGift.title}'! Nominal baru: Rp ${newCollected}`
+      );
       return res.status(200).json({
         success: true,
         message: `Kado ${giftId} berhasil diupdate ke Rp ${newCollected}`,

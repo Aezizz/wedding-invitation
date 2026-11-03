@@ -44,11 +44,15 @@ export default async function handler(req, res) {
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const host = req.headers["x-forwarded-host"] || req.headers.host;
   const origin =
-    req.headers.origin || (host ? `${protocol}://${host}` : "http://localhost:5173");
+    req.headers.origin ||
+    (host ? `${protocol}://${host}` : "http://localhost:5173");
 
-  const safeGiftId = giftId ? String(giftId).replace(/[^a-zA-Z0-9_-]/g, "") : "general";
+  const safeGiftId = giftId
+    ? String(giftId).replace(/[^a-zA-Z0-9_-]/g, "")
+    : "general";
   const externalId = `GIFT-${safeGiftId}-${Date.now()}`;
-  const payerName = donorName && donorName.trim() ? donorName.trim() : "Tamu Undangan";
+  const payerName =
+    donorName && donorName.trim() ? donorName.trim() : "Tamu Undangan";
   const description = `Patungan Hadiah ${giftTitle || "Pernikahan"} oleh ${payerName}`;
 
   try {
@@ -100,7 +104,9 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Xendit Invoice Error:", error);
     return res.status(500).json({
-      message: error?.message || "Terjadi kesalahan internal pada server saat memproses invoice.",
+      message:
+        error?.message ||
+        "Terjadi kesalahan internal pada server saat memproses invoice.",
     });
   }
 }

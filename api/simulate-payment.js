@@ -65,7 +65,7 @@ export default async function handler(req, res) {
 
       if (giftId) {
         // Ambil data kado sekarang
-        const getRes = await fetch(`${supabaseUrl}/rest/v1/gifts?id=eq.${giftId}&select=id,collected`, {
+        const getRes = await fetch(`${supabaseUrl}/rest/v1/gifts?id=eq.${giftId}&select=id,collected,title`, {
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
@@ -89,6 +89,52 @@ export default async function handler(req, res) {
               body: JSON.stringify({ collected: newCollected }),
             });
             console.log(`[Simulator] Supabase kado ${giftId} diupdate ke: Rp ${newCollected}`);
+
+            // Update tabel transactions menjadi PAID
+            try {
+              const txPatchRes = await fetch(
+                `${supabaseUrl}/rest/v1/transactions?external_id=eq.${targetId}`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    apikey: supabaseKey,
+                    Authorization: `Bearer ${supabaseKey}`,
+                    "Content-Type": "application/json",
+                    Prefer: "return=representation",
+                  },
+                  body: JSON.stringify({
+                    status: "PAID",
+                    paid_at: new Date().toISOString(),
+                  }),
+                }
+              );
+
+              if (txPatchRes.ok) {
+                const updated = await txPatchRes.json();
+                if (!updated || updated.length === 0) {
+                  await fetch(`${supabaseUrl}/rest/v1/transactions`, {
+                    method: "POST",
+                    headers: {
+                      apikey: supabaseKey,
+                      Authorization: `Bearer ${supabaseKey}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      external_id: targetId,
+                      donor_name: "Tamu Simulasi",
+                      gift_id: giftId,
+                      gift_title: gifts[0].title,
+                      amount: finalAmount,
+                      payment_method: type || "QRIS",
+                      status: "PAID",
+                      paid_at: new Date().toISOString(),
+                    }),
+                  });
+                }
+              }
+            } catch (txErr) {
+              console.warn("[Simulator DB Warning] Gagal update transaksi:", txErr);
+            }
           }
         }
       }

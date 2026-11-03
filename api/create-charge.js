@@ -1,3 +1,13 @@
+function formatSupabaseUrl(url) {
+  if (!url) return "";
+  let clean = url.trim().replace(/\/$/, "");
+  if (clean.includes("supabase.com/dashboard/project/")) {
+    const projectId = clean.split("/project/")[1]?.split("/")[0];
+    if (projectId) return `https://${projectId}.supabase.co`;
+  }
+  return clean;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -17,7 +27,12 @@ export default async function handler(req, res) {
 
   const safeGiftId = giftId ? String(giftId).replace(/[^a-zA-Z0-9_-]/g, "") : "general";
   const externalId = `GIFT-${safeGiftId}-${Date.now()}`;
-  const payerName = donorName && donorName.trim() ? donorName.trim().slice(0, 30) : "Tamu Undangan";
+  const payerName = donorName && donorName.trim() ? donorName.trim().slice(0, 50) : "Tamu Undangan";
+  const currentGiftTitle = giftTitle || "Kado Pernikahan";
+
+  const rawUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+  const supabaseUrl = formatSupabaseUrl(rawUrl);
 
   try {
     // ==========================================
@@ -43,6 +58,34 @@ export default async function handler(req, res) {
       if (!qrRes.ok) {
         console.error("Xendit QRIS Error:", qrData);
         throw new Error(qrData?.message || "Gagal membuat kode QRIS");
+      }
+
+      // Catat transaksi baru berstatus PENDING ke Supabase
+      if (supabaseUrl && supabaseKey) {
+        try {
+          await fetch(`${supabaseUrl}/rest/v1/transactions`, {
+            method: "POST",
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json",
+              Prefer: "return=representation",
+            },
+            body: JSON.stringify({
+              external_id: externalId,
+              donor_name: payerName,
+              gift_id: safeGiftId,
+              gift_title: currentGiftTitle,
+              amount: Number(amount),
+              payment_method: "QRIS",
+              bank_code: null,
+              account_number: null,
+              status: "PENDING",
+            }),
+          });
+        } catch (dbErr) {
+          console.warn("[DB Warning] Gagal menyimpan transaksi awal QRIS:", dbErr);
+        }
       }
 
       return res.status(200).json({
@@ -82,6 +125,34 @@ export default async function handler(req, res) {
       if (!vaRes.ok) {
         console.error("Xendit VA Error:", vaData);
         throw new Error(vaData?.message || "Gagal membuat Virtual Account");
+      }
+
+      // Catat transaksi baru berstatus PENDING ke Supabase
+      if (supabaseUrl && supabaseKey) {
+        try {
+          await fetch(`${supabaseUrl}/rest/v1/transactions`, {
+            method: "POST",
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json",
+              Prefer: "return=representation",
+            },
+            body: JSON.stringify({
+              external_id: externalId,
+              donor_name: payerName,
+              gift_id: safeGiftId,
+              gift_title: currentGiftTitle,
+              amount: Number(amount),
+              payment_method: "VIRTUAL_ACCOUNT",
+              bank_code: vaData.bank_code,
+              account_number: vaData.account_number,
+              status: "PENDING",
+            }),
+          });
+        } catch (dbErr) {
+          console.warn("[DB Warning] Gagal menyimpan transaksi awal VA:", dbErr);
+        }
       }
 
       return res.status(200).json({
