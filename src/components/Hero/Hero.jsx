@@ -2,42 +2,64 @@ import React from "react";
 import { weddingData } from "../../data/weddingData";
 
 export default function Hero() {
+  const { groom, bride } = weddingData.couple;
+  const { dateFormatted } = weddingData.events.akad;
+
   return (
     <section
       id="home"
-      className="min-h-screen relative flex flex-col items-center justify-center text-center p-6 overflow-hidden"
+      className="min-h-screen relative flex flex-col items-center justify-between text-center p-6 overflow-hidden text-white"
     >
-      {/* 1. Foto Background High-Resolution dengan Efek Gelap Tipis */}
+      {/* Background Hero Image dengan Gradient Overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/components/OpeningModal/Image/bg1.jpeg"
-          alt="Background"
-          className="w-full h-full object-cover"
+          src={weddingData.media.heroImage}
+          alt="Wedding Hero"
+          className="w-full h-full object-cover scale-105 animate-float"
         />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/85" />
       </div>
 
-      {/* 2. Efek Vignette / Border Lembut di Pinggir */}
-      <div className="absolute inset-0 border-[16px] border-primary/10 z-10 pointer-events-none" />
+      {/* Frame Border Mewah */}
+      <div className="absolute inset-4 border border-accent/20 z-10 pointer-events-none rounded-3xl" />
 
-      {/* 3. Konten Utama */}
-      <div className="z-20 max-w-lg flex flex-col items-center text-white px-4">
-        <span className="text-[10px] sm:text-xs tracking-[0.3em] font-medium text-amber-200 uppercase mb-6 drop-shadow">
-          Selamat Datang di Undangan Pernikahan
+      {/* Header Kecil Atas */}
+      <div className="z-20 pt-8 animate-fade-in-up">
+        <span className="text-[10px] sm:text-xs tracking-[0.35em] font-medium text-accent uppercase block drop-shadow">
+          Walimatul 'Ursy
+        </span>
+        <div className="w-8 h-[1px] bg-accent/60 mx-auto mt-2" />
+      </div>
+
+      {/* Konten Utama Tengah */}
+      <div className="z-20 max-w-sm flex flex-col items-center px-4 my-auto">
+        <span className="text-[11px] tracking-[0.3em] font-light text-white/80 uppercase mb-3">
+          The Wedding Celebration of
         </span>
 
-        <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl font-semibold my-4 tracking-wide leading-tight drop-shadow-md">
-          {weddingData.groom.shortName}{" "}
-          <span className="font-serif font-light text-amber-200 italic">&</span>{" "}
-          {weddingData.bride.shortName}
+        <h2 className="font-serif text-4xl sm:text-5xl font-semibold tracking-wide leading-tight drop-shadow-md text-white">
+          {groom.shortName}
+          <span className="block font-serif font-light text-accent text-3xl sm:text-4xl my-1.5 italic">
+            &
+          </span>
+          {bride.shortName}
         </h2>
 
-        <p className="font-sans tracking-[0.15em] uppercase text-[10px] sm:text-xs font-semibold mt-4 drop-shadow">
-          {weddingData.events.akad.date}
-        </p>
+        <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-accent to-transparent my-6" />
 
-        {/* Garis Dekoratif Pendek */}
-        <div className="w-12 h-[1px] bg-amber-200/70 my-6" />
+        <p className="font-sans tracking-[0.2em] uppercase text-xs font-semibold text-accent-light drop-shadow">
+          {dateFormatted}
+        </p>
+      </div>
+
+      {/* Indikator Scroll Bawah */}
+      <div className="z-20 pb-10 flex flex-col items-center gap-2 text-white/60">
+        <span className="text-[9px] uppercase tracking-[0.25em] font-light">
+          Scroll ke Bawah
+        </span>
+        <div className="w-5 h-9 rounded-full border border-white/30 flex items-start justify-center p-1">
+          <div className="w-1 h-2 bg-accent rounded-full animate-bounce" />
+        </div>
       </div>
     </section>
   );

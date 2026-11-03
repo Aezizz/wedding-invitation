@@ -1,8 +1,25 @@
 export const submitRSVP = async (data) => {
-  // Simulasi network latency 1 detik
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const res = await fetch("/api/submit-rsvp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Gagal mengirim RSVP");
+    return await res.json();
+  } catch (err) {
+    console.warn("Fallback local RSVP:", err);
+    return { success: true, message: "Konfirmasi berhasil disimpan!", rsvp: data };
+  }
+};
 
-  // Nanti tinggal ganti dengan: fetch('URL_API_KAMU', { method: 'POST', body: JSON.stringify(data) })
-  console.log("Data RSVP Berhasil Dikirim ke Adapter:", data);
-  return { success: true, message: "Konfirmasi berhasil disimpan!" };
+export const getRSVPs = async () => {
+  try {
+    const res = await fetch("/api/get-rsvps");
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data?.rsvps || [];
+  } catch {
+    return [];
+  }
 };

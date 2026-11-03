@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import FallingPetals from "./FallingPetals";
-import Hero from "../Hero/Hero";
-import BrideGroom from "../BrideGroom/BrideGroom";
-// 1. Import gambar dari folder lo
-import bgImage from "./Image/bg1.jpeg";
+import { weddingData } from "../../data/weddingData";
 
 export default function OpeningModal({ guestName, onOpen }) {
   const [isClosing, setIsClosing] = useState(false);
@@ -12,61 +9,85 @@ export default function OpeningModal({ guestName, onOpen }) {
     setIsClosing(true);
     setTimeout(() => {
       onOpen();
-    }, 500);
+    }, 600);
   };
+
+  const { groom, bride } = weddingData.couple;
+  const { dateFormatted } = weddingData.events.akad;
 
   return (
     <div
-      // Ganti fixed menjadi absolute agar mengikuti kontainer #root
-      className={`absolute inset-0 z-50 flex flex-col items-center justify-between p-8 text-center overflow-hidden transition-opacity duration-500 bg-cover bg-center ${
-        isClosing ? "opacity-0" : "opacity-100"
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-700 ease-out ${
+        isClosing
+          ? "opacity-0 scale-105 pointer-events-none"
+          : "opacity-100 scale-100"
       }`}
-      // 3. Masukin variabel import-nya ke dalam style
-      style={{ backgroundImage: `url(${bgImage})` }}
     >
-      {/* Overlay hitam tipis biar teksnya keliatan jelas */}
-      <div className="absolute inset-0 bg-black/40 z-0"></div>
+      {/* Background Image Cover dengan Soft Vignette */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${weddingData.media.coverImage})`,
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/80 backdrop-blur-[1px]" />
+      </div>
 
-      {/* Wrapper konten supaya ada di atas overlay */}
-      <div className="relative z-10 flex flex-col items-center justify-between h-full w-full">
-        <FallingPetals count={15} />
+      {/* Falling Flower Petals */}
+      <FallingPetals count={16} />
 
-        {/* Dekorasi Atas */}
-        <div className="font-sans text-xs tracking-[0.2em] text-accent uppercase font-semibold mt-12">
-          The Wedding of
+      {/* Konten Cover Utama */}
+      <div className="relative z-10 w-full max-w-[420px] h-full flex flex-col justify-between items-center text-center px-6 py-12 text-white">
+        {/* Ornamen Monogram Atas */}
+        <div className="flex flex-col items-center animate-fade-in-up">
+          <div className="w-10 h-10 rounded-full border border-accent/40 flex items-center justify-center text-accent text-xs mb-3 font-serif tracking-widest bg-black/20 backdrop-blur-xs">
+            R&H
+          </div>
+          <span className="text-[11px] tracking-[0.35em] text-accent-light uppercase font-medium">
+            {weddingData.couple.title}
+          </span>
         </div>
 
-        {/* Nama Pengantin Utama */}
-        <div className="my-auto flex flex-col gap-2">
-          <h1 className="font-serif text-5xl md:text-6xl text-secondary font-medium tracking-wide">
-            Apsari
-            <br />&
-            <br />
-            Rama
+        {/* Nama Mempelai */}
+        <div className="my-auto py-6 flex flex-col items-center">
+          <h1 className="font-serif text-5xl md:text-6xl text-white font-medium tracking-wide leading-tight drop-shadow-lg">
+            {groom.shortName}
+            <span className="block font-serif font-light text-accent text-3xl md:text-4xl my-1 italic">
+              &
+            </span>
+            {bride.shortName}
           </h1>
 
-          {/* Box Nama Tamu (Glassmorphism) */}
-          <div className="mt-12 p-6 glass-card rounded-2xl max-w-sm mx-auto shadow-sm backdrop-blur-md">
-            <p className="text-xs text-charcoal/70 font-medium uppercase tracking-wider mb-2">
+          <p className="text-xs tracking-[0.2em] uppercase text-white/80 font-medium mt-4">
+            {dateFormatted}
+          </p>
+
+          {/* Kartu Nama Tamu */}
+          <div className="mt-8 px-6 py-4 glass-card-dark rounded-2xl w-full max-w-[320px] border border-accent/30 shadow-2xl backdrop-blur-md">
+            <span className="text-[10px] text-white/70 uppercase tracking-widest block mb-1.5 font-medium">
               Kepada Yth. Bapak/Ibu/Saudara/i:
-            </p>
-            <h2 className="font-serif text-2xl text-charcoal font-semibold tracking-wide">
-              {guestName}
+            </span>
+            <h2 className="font-serif text-xl md:text-2xl text-accent-light font-semibold tracking-wide">
+              {guestName || "Tamu Undangan"}
             </h2>
+            <span className="text-[10px] text-white/50 block mt-1 italic">
+              Di Tempat
+            </span>
           </div>
         </div>
 
         {/* Tombol Buka Undangan */}
-        <div className="mb-12 w-full max-w-xs">
-          <p className="text-xs text-charcoal/60 mb-4 italic">
-            *Mohon maaf apabila ada kesalahan penulisan nama/gelar
-          </p>
+        <div className="w-full max-w-[280px] flex flex-col items-center">
           <button
             onClick={handleOpenClick}
-            className="w-full py-3.5 bg-secondary text-primary font-sans font-medium rounded-full tracking-wider shadow-md hover:bg-secondary/90 transition-all duration-300 transform active:scale-95 cursor-pointer"
+            className="group relative w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-accent to-[#d8b056] text-charcoal font-semibold text-xs tracking-widest uppercase shadow-xl hover:shadow-accent/40 transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-2 animate-pulse-gold"
           >
-            BUKA UNDANGAN
+            <span className="text-sm">✉️</span>
+            <span>BUKA UNDANGAN</span>
           </button>
+          <span className="text-[10px] text-white/60 mt-3 font-light">
+            *Sentuh tombol untuk membuka & memutar musik
+          </span>
         </div>
       </div>
     </div>

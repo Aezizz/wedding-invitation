@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { weddingData } from "../data/weddingData";
 
 // Daftar hadiah milestone dengan target nominal dan jumlah yang sudah terkumpul
 const initialGifts = [
@@ -63,6 +64,10 @@ export default function GiftSection() {
   const [copiedField, setCopiedField] = useState(null);
   const [simulating, setSimulating] = useState(false);
 
+  // Accordion status untuk amplop langsung & kado fisik
+  const [showDirectAccounts, setShowDirectAccounts] = useState(false);
+  const [showShippingAddress, setShowShippingAddress] = useState(false);
+
   // Format angka ke format mata uang Rupiah
   const formatRupiah = (val) => {
     return new Intl.NumberFormat("id-ID", {
@@ -114,7 +119,6 @@ export default function GiftSection() {
         if (latestGifts) {
           const currentTarget = latestGifts.find((g) => g.id === selectedGift.id);
           if (currentTarget && Number(currentTarget.collected) > initialCollected) {
-            // Webhook Xendit terverifikasi & nominal di database naik!
             setPaymentStep("success");
             clearInterval(intervalId);
           }
@@ -228,12 +232,12 @@ export default function GiftSection() {
         throw new Error(err?.message || "Gagal simulasi bayar");
       }
 
-      // Tunggu 1.5 detik agar webhook Xendit sempat masuk ke Supabase
+      // Tunggu 1 detik agar data kado & transaksi terupdate
       setTimeout(async () => {
         await refreshGiftsFromDatabase();
         setPaymentStep("success");
         setSimulating(false);
-      }, 1500);
+      }, 1000);
     } catch (err) {
       alert("Error saat simulasi: " + err.message);
       setSimulating(false);
@@ -250,24 +254,25 @@ export default function GiftSection() {
   return (
     <section
       id="hadiah"
-      className="py-20 px-6 max-w-4xl mx-auto text-center scroll-mt-10"
+      className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden"
     >
       {/* Header Section */}
-      <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-2">
-        Milestone & Kado Impian
+      <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
+        Wedding Gift & Milestone
       </span>
-      <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide mb-3">
-        Kado Pernikahan
+      <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
+        Tanda Kasih
       </h2>
-      <div className="w-12 h-[1px] bg-accent/40 mx-auto mb-4" />
-      <p className="text-xs text-charcoal/70 max-w-md mx-auto mb-10 leading-relaxed">
-        Doa restu Anda adalah karunia terindah. Namun jika ingin memberikan
-        tanda cinta, Anda dapat turut serta berpatungan mewujudkan impian rumah
-        tangga kami langsung di bawah ini.
+      <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-6" />
+
+      <p className="text-xs text-charcoal/70 max-w-sm mx-auto mb-10 leading-relaxed">
+        Doa restu Anda adalah karunia terindah bagi kami. Namun jika Anda ingin
+        memberikan tanda cinta, Anda dapat turut berpartisipasi patungan kado
+        impian kami atau mengirimkannya langsung di bawah ini.
       </p>
 
-      {/* Grid 3 Kartu Target Hadiah */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+      {/* Grid Kartu Target Hadiah Milestone */}
+      <div className="flex flex-col gap-6 text-left">
         {gifts.map((item) => {
           const percent = Math.min(
             Math.round((item.collected / item.target) * 100),
@@ -278,14 +283,14 @@ export default function GiftSection() {
           return (
             <div
               key={item.id}
-              className="glass-card p-6 rounded-3xl flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300 border border-secondary/15 hover:border-secondary/30"
+              className="glass-card p-6 rounded-3xl flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300 border border-secondary/15 hover:border-accent/40"
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-2xl shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center text-2xl shadow-inner border border-secondary/10">
                     {item.icon}
                   </div>
-                  <span className="text-[10px] tracking-wider font-semibold uppercase text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] tracking-wider font-semibold uppercase text-accent-dark bg-accent/15 px-3 py-1 rounded-full border border-accent/25">
                     {item.category}
                   </span>
                 </div>
@@ -297,11 +302,11 @@ export default function GiftSection() {
                   {item.description}
                 </p>
 
-                {/* Progress Detail */}
-                <div className="bg-white/40 p-3 rounded-2xl border border-secondary/10 mb-3">
+                {/* Detail Progres Terkumpul */}
+                <div className="bg-white/60 p-3.5 rounded-2xl border border-secondary/10 mb-3">
                   <div className="flex justify-between items-baseline text-xs mb-1">
                     <span className="text-charcoal/60 text-[11px]">Terkumpul</span>
-                    <span className="font-bold text-charcoal">
+                    <span className="font-bold text-secondary">
                       {formatRupiah(item.collected)}
                     </span>
                   </div>
@@ -310,10 +315,10 @@ export default function GiftSection() {
                     <span>{formatRupiah(item.target)}</span>
                   </div>
 
-                  {/* Visual Progress Bar */}
-                  <div className="w-full bg-charcoal/10 rounded-full h-2 overflow-hidden">
+                  {/* Progress Bar */}
+                  <div className="w-full bg-charcoal/10 rounded-full h-2.5 overflow-hidden">
                     <div
-                      className="bg-secondary h-full rounded-full transition-all duration-700 ease-out"
+                      className="bg-gradient-to-r from-secondary to-accent h-full rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
@@ -326,7 +331,7 @@ export default function GiftSection() {
                   <span className="text-charcoal/50 text-[10px]">
                     {remaining > 0
                       ? `Sisa ${formatRupiah(remaining)}`
-                      : "Target Tercapai!"}
+                      : "Target Tercapai! 🎉"}
                   </span>
                 </div>
               </div>
@@ -334,9 +339,9 @@ export default function GiftSection() {
               {/* Tombol Aksi Ikut Patungan */}
               <button
                 onClick={() => handleOpenModal(item)}
-                className="mt-6 w-full py-3 bg-secondary text-primary font-medium text-xs tracking-wider rounded-xl hover:bg-secondary/90 transition-all duration-200 shadow-sm cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+                className="mt-5 w-full py-3 bg-secondary text-primary font-semibold text-xs tracking-wider rounded-xl hover:bg-secondary/90 transition-all duration-200 shadow-sm cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
-                <span>IKUT PATUNGAN</span>
+                <span>IKUT PATUNGAN HADIAH</span>
                 <span>→</span>
               </button>
             </div>
@@ -344,11 +349,126 @@ export default function GiftSection() {
         })}
       </div>
 
+      {/* Bagian Tambahan: Rekening Langsung & Kirim Kado Fisik */}
+      <div className="mt-12 flex flex-col gap-4 text-left">
+        {/* Accordion 1: Transfer Rekening Bank Langsung */}
+        <div className="glass-card rounded-2xl border border-secondary/20 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => setShowDirectAccounts(!showDirectAccounts)}
+            className="w-full p-4 flex items-center justify-between text-left font-medium text-xs text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-base">💳</span>
+              <div>
+                <h4 className="font-semibold text-charcoal text-xs">
+                  Transfer Rekening Langsung
+                </h4>
+                <p className="text-[10px] text-charcoal/60">
+                  Untuk tamu yang ingin transfer manual tanpa payment gateway
+                </p>
+              </div>
+            </div>
+            <span className="text-xs text-accent font-bold">
+              {showDirectAccounts ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {showDirectAccounts && (
+            <div className="p-4 pt-1 border-t border-secondary/15 flex flex-col gap-3 animate-fade-in">
+              {weddingData.gift.directAccounts.map((acc, i) => (
+                <div
+                  key={i}
+                  className="p-3 bg-white/70 rounded-xl border border-secondary/15 flex items-center justify-between"
+                >
+                  <div>
+                    <span className="text-[10px] font-bold text-accent uppercase block">
+                      Bank {acc.bankName}
+                    </span>
+                    <span className="font-mono text-sm font-bold text-secondary tracking-wider block">
+                      {acc.accountNumber}
+                    </span>
+                    <span className="text-[10px] text-charcoal/60 block">
+                      a.n. {acc.accountHolder}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(acc.accountNumber, `direct-${i}`)}
+                    className="px-3 py-1.5 bg-secondary text-primary text-[10px] font-bold rounded-lg hover:bg-secondary/90 transition-all cursor-pointer"
+                  >
+                    {copiedField === `direct-${i}` ? "Tersalin! ✓" : "Salin"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Accordion 2: Kirim Kado Fisik ke Alamat */}
+        <div className="glass-card rounded-2xl border border-secondary/20 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => setShowShippingAddress(!showShippingAddress)}
+            className="w-full p-4 flex items-center justify-between text-left font-medium text-xs text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-base">🎁</span>
+              <div>
+                <h4 className="font-semibold text-charcoal text-xs">
+                  Kirim Kado Fisik
+                </h4>
+                <p className="text-[10px] text-charcoal/60">
+                  Alamat pengiriman kado ke kediaman mempelai
+                </p>
+              </div>
+            </div>
+            <span className="text-xs text-accent font-bold">
+              {showShippingAddress ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {showShippingAddress && (
+            <div className="p-4 pt-1 border-t border-secondary/15 flex flex-col gap-2 animate-fade-in text-xs">
+              <div className="p-3 bg-white/70 rounded-xl border border-secondary/15">
+                <span className="text-[10px] font-bold text-accent uppercase block mb-1">
+                  Penerima:
+                </span>
+                <p className="font-semibold text-secondary mb-1">
+                  {weddingData.gift.shippingAddress.recipient} (
+                  {weddingData.gift.shippingAddress.phone})
+                </p>
+                <p className="text-[11px] text-charcoal/80 leading-relaxed mb-3">
+                  {weddingData.gift.shippingAddress.address}
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopy(
+                      weddingData.gift.shippingAddress.address,
+                      "shipping"
+                    )
+                  }
+                  className="w-full py-2 bg-secondary/10 hover:bg-secondary text-secondary hover:text-white text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center block"
+                >
+                  {copiedField === "shipping"
+                    ? "Alamat Tersalin! ✓"
+                    : "Salin Alamat Lengkap"}
+                </button>
+              </div>
+              <span className="text-[10px] text-charcoal/50 italic text-center block">
+                {weddingData.gift.shippingAddress.notes}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* MODAL NATIVE: QRIS & VIRTUAL ACCOUNT 100% DI WEBSITE */}
       {selectedGift && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-4">
           <div
-            className="glass-card bg-primary p-6 md:p-8 rounded-3xl max-w-sm w-full text-left relative shadow-2xl border border-secondary/20 animate-fade-in-up max-h-[92vh] overflow-y-auto"
+            className="glass-card bg-primary p-6 md:p-8 rounded-3xl max-w-sm w-full text-left relative shadow-2xl border border-accent/30 animate-fade-in-up max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol Tutup */}
@@ -373,13 +493,10 @@ export default function GiftSection() {
               </h3>
             </div>
 
-            {/* ======================================================= */}
-            {/* STEP 1: FORM INPUT & PILIH METODE BAYAR                 */}
-            {/* ======================================================= */}
+            {/* STEP 1: FORM INPUT & PILIH METODE BAYAR */}
             {paymentStep === "input" && (
               <>
-                {/* Milestone Summary Card */}
-                <div className="bg-white/60 p-3.5 rounded-2xl mb-4 border border-secondary/15">
+                <div className="bg-white/70 p-3.5 rounded-2xl mb-4 border border-secondary/15">
                   <div className="flex justify-between items-center text-xs mb-1">
                     <span className="text-charcoal/70">Target Kado:</span>
                     <span className="font-bold text-charcoal">
@@ -406,7 +523,7 @@ export default function GiftSection() {
                     <input
                       type="text"
                       placeholder="Contoh: Budi Santoso"
-                      className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal focus:outline-none focus:border-secondary transition-colors"
+                      className="w-full px-4 py-2.5 bg-white/80 border border-secondary/25 rounded-xl text-sm text-charcoal focus:outline-none focus:border-secondary transition-colors"
                       value={donorName}
                       onChange={(e) => setDonorName(e.target.value)}
                       disabled={loading}
@@ -423,7 +540,7 @@ export default function GiftSection() {
                       required
                       min="10000"
                       step="1000"
-                      className="w-full px-4 py-2.5 bg-white/70 border border-secondary/25 rounded-xl text-sm text-charcoal font-medium focus:outline-none focus:border-secondary transition-colors"
+                      className="w-full px-4 py-2.5 bg-white/80 border border-secondary/25 rounded-xl text-sm text-charcoal font-medium focus:outline-none focus:border-secondary transition-colors"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       disabled={loading}
@@ -440,7 +557,7 @@ export default function GiftSection() {
                           className={`text-[10px] py-1.5 px-1 rounded-lg border text-center transition-all cursor-pointer font-medium ${
                             amount === val.toString()
                               ? "bg-secondary text-primary border-secondary font-bold"
-                              : "bg-white/50 border-secondary/20 text-charcoal/80 hover:bg-secondary/10"
+                              : "bg-white/60 border-secondary/20 text-charcoal/80 hover:bg-secondary/10"
                           }`}
                         >
                           {val >= 1000000
@@ -463,7 +580,7 @@ export default function GiftSection() {
                         className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           paymentMethod === "QRIS"
                             ? "bg-secondary text-primary border-secondary shadow-xs"
-                            : "bg-white/60 text-charcoal/70 border-secondary/20 hover:bg-white"
+                            : "bg-white/70 text-charcoal/70 border-secondary/20 hover:bg-white"
                         }`}
                       >
                         <span>📱</span>
@@ -476,7 +593,7 @@ export default function GiftSection() {
                         className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           paymentMethod === "VIRTUAL_ACCOUNT"
                             ? "bg-secondary text-primary border-secondary shadow-xs"
-                            : "bg-white/60 text-charcoal/70 border-secondary/20 hover:bg-white"
+                            : "bg-white/70 text-charcoal/70 border-secondary/20 hover:bg-white"
                         }`}
                       >
                         <span>🏦</span>
@@ -484,9 +601,8 @@ export default function GiftSection() {
                       </button>
                     </div>
 
-                    {/* Jika VA dipilih, tampilkan pilihan Bank */}
                     {paymentMethod === "VIRTUAL_ACCOUNT" && (
-                      <div className="mt-2.5 p-2.5 bg-white/50 rounded-xl border border-secondary/15">
+                      <div className="mt-2.5 p-2.5 bg-white/60 rounded-xl border border-secondary/15">
                         <span className="text-[10px] text-charcoal/70 block mb-1.5 font-medium">
                           Pilih Bank Virtual Account:
                         </span>
@@ -542,7 +658,9 @@ export default function GiftSection() {
                       </>
                     ) : (
                       <span>
-                        {paymentMethod === "QRIS" ? "TAMPILKAN QRIS 📱" : "BUAT NO. REKENING VA 🏦"}
+                        {paymentMethod === "QRIS"
+                          ? "TAMPILKAN QRIS 📱"
+                          : "BUAT NO. REKENING VA 🏦"}
                       </span>
                     )}
                   </button>
@@ -550,21 +668,21 @@ export default function GiftSection() {
               </>
             )}
 
-            {/* ======================================================= */}
-            {/* STEP 2: ACTIVE CHARGE (QRIS ATAU VA NATIVE TAMPIL DI SINI)*/}
-            {/* ======================================================= */}
+            {/* STEP 2: ACTIVE CHARGE (QRIS ATAU VA NATIVE TAMPIL) */}
             {paymentStep === "active_charge" && chargeData && (
               <div className="flex flex-col items-center text-center animate-fade-in">
-                {/* 1. TAMPILAN JIKA QRIS */}
                 {chargeData.type === "QRIS" && (
                   <div className="w-full flex flex-col items-center">
                     <div className="bg-white p-4 rounded-2xl shadow-md border border-secondary/20 mb-3 flex flex-col items-center">
                       <div className="flex items-center gap-1.5 mb-2">
-                        <span className="font-bold text-xs tracking-wider text-red-600">QRIS</span>
-                        <span className="text-[9px] text-charcoal/60">Semua Pembayaran</span>
+                        <span className="font-bold text-xs tracking-wider text-red-600">
+                          QRIS
+                        </span>
+                        <span className="text-[9px] text-charcoal/60">
+                          Semua Pembayaran
+                        </span>
                       </div>
 
-                      {/* Render Gambar Barcode QRIS dari String Xendit */}
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
                           chargeData.qrString || "QRIS",
@@ -579,7 +697,9 @@ export default function GiftSection() {
                     </div>
 
                     <div className="text-center mb-3">
-                      <span className="text-[11px] text-charcoal/60 block">Total Nominal:</span>
+                      <span className="text-[11px] text-charcoal/60 block">
+                        Total Nominal:
+                      </span>
                       <strong className="text-lg font-bold text-secondary">
                         {formatRupiah(chargeData.amount)}
                       </strong>
@@ -591,9 +711,8 @@ export default function GiftSection() {
                   </div>
                 )}
 
-                {/* 2. TAMPILAN JIKA VIRTUAL ACCOUNT */}
                 {chargeData.type === "VIRTUAL_ACCOUNT" && (
-                  <div className="w-full text-left bg-white/70 p-4 rounded-2xl border border-secondary/20 mb-3">
+                  <div className="w-full text-left bg-white/80 p-4 rounded-2xl border border-secondary/20 mb-3">
                     <div className="flex justify-between items-center mb-3 pb-2 border-b border-secondary/15">
                       <span className="text-xs font-bold text-secondary">
                         Bank {chargeData.bankCode} Virtual Account
@@ -603,12 +722,11 @@ export default function GiftSection() {
                       </span>
                     </div>
 
-                    {/* Nomor VA */}
                     <div className="mb-3">
                       <span className="text-[10px] text-charcoal/60 uppercase block mb-1">
                         Nomor Virtual Account:
                       </span>
-                      <div className="flex items-center justify-between bg-primary/60 p-2.5 rounded-xl border border-secondary/20">
+                      <div className="flex items-center justify-between bg-primary/80 p-2.5 rounded-xl border border-secondary/20">
                         <span className="font-mono text-base font-bold text-secondary tracking-wider">
                           {chargeData.accountNumber}
                         </span>
@@ -622,18 +740,19 @@ export default function GiftSection() {
                       </div>
                     </div>
 
-                    {/* Total Tagihan */}
                     <div className="mb-2">
                       <span className="text-[10px] text-charcoal/60 uppercase block mb-1">
                         Total Pembayaran:
                       </span>
-                      <div className="flex items-center justify-between bg-primary/60 p-2.5 rounded-xl border border-secondary/20">
+                      <div className="flex items-center justify-between bg-primary/80 p-2.5 rounded-xl border border-secondary/20">
                         <span className="font-bold text-sm text-secondary">
                           {formatRupiah(chargeData.amount)}
                         </span>
                         <button
                           type="button"
-                          onClick={() => handleCopy(chargeData.amount.toString(), "amount")}
+                          onClick={() =>
+                            handleCopy(chargeData.amount.toString(), "amount")
+                          }
                           className="px-2.5 py-1 bg-secondary text-primary text-[10px] font-bold rounded-lg hover:bg-secondary/90 transition-all cursor-pointer"
                         >
                           {copiedField === "amount" ? "Tersalin! ✓" : "Salin"}
@@ -657,7 +776,6 @@ export default function GiftSection() {
 
                 {/* Tombol Aksi & Testing Simulator */}
                 <div className="flex flex-col w-full gap-2">
-                  {/* Tombol Cek Manual */}
                   <button
                     type="button"
                     onClick={handleManualCheck}
@@ -671,7 +789,6 @@ export default function GiftSection() {
                     )}
                   </button>
 
-                  {/* Tombol Simulasi Bayar Instan (Khusus Mode Testing/Sandbox) */}
                   <button
                     type="button"
                     onClick={handleSimulatePayment}
@@ -681,11 +798,10 @@ export default function GiftSection() {
                     {simulating ? "Memproses Simulasi..." : "⚡ Simulasi Bayar Sukses (Test Mode)"}
                   </button>
 
-                  {/* Tombol Ganti Metode */}
                   <button
                     type="button"
                     onClick={() => setPaymentStep("input")}
-                    className="text-[11px] text-charcoal/60 hover:text-charcoal py-1 mt-1"
+                    className="text-[11px] text-charcoal/60 hover:text-charcoal py-1 mt-1 cursor-pointer"
                   >
                     ← Ganti Metode Lain / Nominal
                   </button>
@@ -693,12 +809,10 @@ export default function GiftSection() {
               </div>
             )}
 
-            {/* ======================================================= */}
-            {/* STEP 3: PEMBAYARAN SUKSES / TERVERIFIKASI               */}
-            {/* ======================================================= */}
+            {/* STEP 3: PEMBAYARAN SUKSES / TERVERIFIKASI */}
             {paymentStep === "success" && (
               <div className="flex flex-col items-center text-center py-4 animate-fade-in">
-                <div className="w-16 h-16 rounded-full bg-[#7a8b7b]/20 text-[#7a8b7b] flex items-center justify-center text-3xl mb-3 shadow-inner">
+                <div className="w-16 h-16 rounded-full bg-accent/20 text-accent-dark flex items-center justify-center text-3xl mb-3 shadow-inner">
                   🎉
                 </div>
 
@@ -713,7 +827,7 @@ export default function GiftSection() {
                   berhasil ditambahkan ke kado {selectedGift.title}.
                 </p>
 
-                <div className="w-full bg-[#7a8b7b]/15 border border-[#7a8b7b]/30 p-3 rounded-2xl mb-4 text-xs text-charcoal/80 font-medium">
+                <div className="w-full bg-accent/15 border border-accent/30 p-3 rounded-2xl mb-4 text-xs text-charcoal/80 font-medium">
                   Milestone target kado ini sekarang bertambah secara live! ✨
                 </div>
 

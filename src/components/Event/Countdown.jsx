@@ -9,8 +9,8 @@ export default function Countdown() {
 
   if (isTimeUp) {
     return (
-      <div className="text-center font-serif text-xl text-accent font-medium mt-6">
-        Momen Bahagia Sedang Berlangsung!
+      <div className="text-center font-serif text-lg text-accent font-semibold my-6 py-4 px-6 glass-card rounded-2xl border border-accent/40 animate-pulse">
+        🎉 Momen Bahagia Sedang Berlangsung!
       </div>
     );
   }
@@ -23,16 +23,16 @@ export default function Countdown() {
   ];
 
   return (
-    <div className="flex justify-center gap-3 md:gap-4 my-8">
+    <div className="flex justify-center items-center gap-2.5 sm:gap-3.5 my-8">
       {timeBlocks.map((block, idx) => (
         <div
           key={idx}
-          className="flex flex-col items-center justify-center w-16 h-16 md:w-20 md:h-20 glass-card rounded-2xl shadow-sm"
+          className="flex flex-col items-center justify-center w-[72px] h-[76px] sm:w-20 sm:h-20 glass-card rounded-2xl border border-accent/25 shadow-sm hover:border-accent/50 transition-all duration-300"
         >
-          <span className="font-serif text-xl md:text-2xl font-semibold text-secondary">
+          <span className="font-serif text-2xl sm:text-3xl font-bold text-secondary">
             {String(block.value).padStart(2, "0")}
           </span>
-          <span className="text-[10px] md:text-xs text-charcoal/60 uppercase font-medium tracking-wider mt-0.5">
+          <span className="text-[10px] text-charcoal-muted uppercase font-semibold tracking-widest mt-1">
             {block.label}
           </span>
         </div>

@@ -1,17 +1,23 @@
-/* Panggil Google Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap");
+/* Import Google Fonts: Playfair Display, Cormorant Garamond, Inter */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap");
 
-/* Entry point utama untuk Tailwind v4 murni */
+/* Entry point utama untuk Tailwind CSS v4 */
 @import "tailwindcss";
 
-/* Setup Design System langsung di dalam CSS (Standar Tailwind v4) */
+/* Design System Tokens */
 @theme {
-  --color-primary: #fdfbf7;
-  --color-secondary: #7a8b7b;
-  --color-accent: #b8978e;
-  --color-charcoal: #2c3e50;
+  --color-primary: #fcfaf7;        /* Ivory Silk */
+  --color-primary-dark: #f5f0e6;
+  --color-secondary: #4a5a48;      /* Deep Sage Olive */
+  --color-secondary-light: #6a7c68;
+  --color-accent: #c49d48;         /* Luxury Gold */
+  --color-accent-dark: #9b792b;
+  --color-accent-light: #f7edd7;
+  --color-charcoal: #232826;       /* Soft Slate */
+  --color-charcoal-muted: #5e6662;
 
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
 }
 
@@ -23,17 +29,19 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  background-color: #e5e7eb;
+  background-color: #1a1d1c; /* Elegant dark desktop backdrop */
   display: flex;
   justify-content: center;
 }
 
 #root {
   width: 100%;
-  max-width: 430px;
+  max-width: 440px;
   min-height: 100vh;
   background-color: var(--color-primary);
   overflow-x: hidden;
+  position: relative;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.45);
 }
 
 body {
@@ -46,38 +54,93 @@ img {
   height: auto;
 }
 
-/* Utility kustom untuk Glassmorphism premium */
+/* Glassmorphism Card Premium */
 .glass-card {
-  background: rgba(253, 251, 247, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(122, 139, 123, 0.15);
+  background: rgba(252, 250, 247, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(196, 157, 72, 0.22);
+  box-shadow: 0 8px 30px rgba(74, 90, 72, 0.06);
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+.glass-card-dark {
+  background: rgba(35, 40, 38, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(196, 157, 72, 0.3);
+}
+
+/* Shimmer Gold Line */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 157, 72, 0.7) 50%,
+    transparent 100%
+  );
+}
+
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
-/* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-@layer utilities {
-  .animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out forwards;
+/* Animations */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes fade-in-up {
-  0% {
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(30px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseGold {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(196, 157, 72, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(196, 157, 72, 0);
+  }
+}
+
+.animate-pulse-gold {
+  animation: pulseGold 2.5s infinite;
 }
