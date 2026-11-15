@@ -8,24 +8,61 @@ export default function BrideGroom() {
   return (
     <section
       id="bride-groom"
-      className="py-20 px-6 bg-primary text-center flex flex-col items-center relative overflow-hidden"
+      className="py-20 px-6 text-center flex flex-col items-center relative overflow-hidden bg-cover bg-center"
+      style={{ backgroundImage: "url('/images/bg1.webp')" }}
     >
       <div className="max-w-md w-full flex flex-col gap-12">
-        {/* Ayat Suci & Kutipan Pembuka */}
-        <div className="glass-card p-6 md:p-8 rounded-3xl border border-accent/25 relative shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center mx-auto mb-4 text-xs font-serif">
-            ❦
-          </div>
+        {/* Ayat Suci & Kutipan Pembuka (Bingkai Emas & Ornamen Bunga Sesuai Desain) */}
+        <div className="relative w-full max-w-[360px] sm:max-w-[380px] aspect-[9/16] mx-auto flex items-center justify-center my-2">
+          {/* 1. Bingkai Parchment Kuno */}
+          <img
+            src="/images/Bingkai_1.webp"
+            alt="Bingkai Ayat Suci"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[520px] object-fill pointer-events-none drop-shadow-xl"
+          />
 
-          <p className="font-serif text-base md:text-lg text-charcoal font-medium leading-loose mb-3 px-2">
-            "{quote.arabic}"
-          </p>
-          <p className="font-sans text-xs text-charcoal/75 leading-relaxed italic mb-3">
-            "{quote.text}"
-          </p>
-          <span className="text-[11px] font-bold text-accent tracking-wider uppercase">
-            — {quote.source}
-          </span>
+          {/* 2. Ornamen Bunga Kanan Atas */}
+          <img
+            src="/images/Aksesoris_5.webp"
+            alt="Bunga Kanan Atas"
+            className="absolute -top-6 -right-6 w-400 sm:w-56 h-auto object-contain pointer-events-none z-20 rotate-180 drop-shadow-md"
+          />
+
+          {/* 3. Ornamen Bunga Kiri Bawah */}
+          <img
+            src="/images/Aksesoris_5.webp"
+            alt="Bunga Kiri Bawah"
+            className="absolute -bottom-6 -left-6 w-400px sm:w-56 h-auto object-contain pointer-events-none z-20 drop-shadow-md"
+          />
+
+          {/* 4. Konten Teks Ayat Suci */}
+          <div className="relative z-10 w-full h-full flex flex-col justify-center items-center px-10 py-16 sm:py-20 text-center">
+            {/* Teks Bahasa Arab (Diformat per baris agar tidak menabrak bunga kanan atas) */}
+            <div className="font-serif text-[20px] sm:text-[14.5px] text-[#241c14] font-semibold leading-[2] mb-3 sm:mb-4 max-w-[205px]">
+              <span className="block">
+                وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ
+              </span>
+              <span className="block">
+                أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا
+              </span>
+              <span className="block">
+                وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
+              </span>
+            </div>
+
+            {/* Terjemahan Bahasa Indonesia */}
+            <p className="font-serif text-[10px] sm:text-[11px] text-[#3a2e22] leading-[1.65] mb-3 sm:mb-4 max-w-[195px]">
+              Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan
+              pasangan-pasangan untukmu dari jenismu sendiri, agar kamu
+              cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di
+              antaramu rasa kasih dan sayang.
+            </p>
+
+            {/* Sumber Ayat */}
+            <span className="font-serif text-xs sm:text-sm font-bold text-[#241c14] tracking-wider">
+              QS. Ar-Rum: 21
+            </span>
+          </div>
         </div>
 
         {/* Section Heading */}

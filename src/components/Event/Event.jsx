@@ -10,19 +10,20 @@ export default function Event() {
   return (
     <section
       id="event"
-      className="py-20 px-6 bg-primary-dark/40 text-center flex flex-col items-center relative overflow-hidden"
+      className="py-20 px-6 text-center flex flex-col items-center relative overflow-hidden bg-cover bg-center"
+      style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
     >
       <div className="max-w-md w-full">
         {/* Header Section */}
         <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
           Save The Date
         </span>
-        <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
+        <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
           Rangkaian Acara
         </h2>
         <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-6" />
 
-        <p className="text-xs text-charcoal/70 max-w-xs mx-auto leading-relaxed mb-6">
+        <p className="text-xs text-white/80 max-w-xs mx-auto leading-relaxed mb-6">
           Dengan penuh rasa syukur, kami mengundang Bapak/Ibu/Saudara/i untuk
           hadir dan memberikan doa restu pada:
         </p>

@@ -254,7 +254,8 @@ export default function GiftSection() {
   return (
     <section
       id="hadiah"
-      className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden"
+      className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden bg-cover bg-center"
+      style={{ backgroundImage: "url('/images/bg1.webp')" }}
     >
       {/* Header Section */}
       <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import bgImage from "./Image/bg2.jpeg";
+const bgImage = "/images/bg2.webp";
 
 const EnvelopeOpening = ({ onOpen }) => {
   const [open, setOpen] = useState(false);

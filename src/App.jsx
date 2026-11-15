@@ -159,11 +159,15 @@ export default function App() {
               <Story />
 
               {/* Galeri Prewedding */}
-              <section id="gallery" className="py-20 px-6 text-center max-w-md mx-auto">
+              <section
+                id="gallery"
+                className="py-20 px-6 text-center max-w-md mx-auto relative overflow-hidden bg-cover bg-center"
+                style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
+              >
                 <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
                   Moments
                 </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
+                <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
                   Galeri Bahagia
                 </h2>
                 <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-8" />
@@ -198,11 +202,15 @@ export default function App() {
               <GiftSection />
 
               {/* RSVP & Buku Tamu */}
-              <section id="rsvp" className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10">
+              <section
+                id="rsvp"
+                className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden bg-cover bg-center"
+                style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
+              >
                 <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
                   Wishes & Greetings
                 </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
+                <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
                   RSVP & Doa Restu
                 </h2>
                 <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-8" />
@@ -298,7 +306,10 @@ export default function App() {
               </section>
 
               {/* Footer Penutup */}
-              <footer className="py-16 bg-primary-dark/60 text-center text-xs text-charcoal/70 border-t border-accent/20 px-6">
+              <footer
+                className="py-16 text-center text-xs text-charcoal/70 border-t border-accent/20 px-6 relative overflow-hidden bg-cover bg-center"
+                style={{ backgroundImage: "url('/images/bg1.webp')" }}
+              >
                 <div className="w-10 h-10 rounded-full border border-accent/40 flex items-center justify-center text-accent text-xs mx-auto mb-3 font-serif">
                   R&H
                 </div>

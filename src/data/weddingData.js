@@ -40,11 +40,11 @@ export const weddingData = {
       "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage:
       "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
-    bgPattern:
-      "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=1000&q=80",
-    musicUrl:
-      "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-113264.mp3",
-    musicTitle: "Romantic Wedding Melody",
+    heroVideo: "/videos/hero.mp4",
+    heroVideoPoster: "/video-poster.webp",
+    bgPattern: "/images/bg1.webp",
+    musicUrl: "/audio/ardhito-pramono-17-to-70.mp3",
+    musicTitle: "Ardhito Pramono - 17 to 70",
   },
 
   // Ayat / Kutipan Cinta Pembuka

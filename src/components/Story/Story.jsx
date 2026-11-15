@@ -7,7 +7,11 @@ export default function Story() {
   if (!story || story.length === 0) return null;
 
   return (
-    <section className="py-20 px-6 bg-primary text-center flex flex-col items-center relative overflow-hidden">
+    <section
+      id="story"
+      className="py-20 px-6 text-center flex flex-col items-center relative overflow-hidden bg-cover bg-center"
+      style={{ backgroundImage: "url('/images/bg1.webp')" }}
+    >
       <div className="max-w-md w-full">
         {/* Section Header */}
         <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
