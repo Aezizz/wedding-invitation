@@ -14,6 +14,7 @@ export default function App() {
   const [guestName, setGuestName] = useState("Tamu Undangan");
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeLightbox, setActiveLightbox] = useState(null);
+  const [rsvpTab, setRsvpTab] = useState("form");
 
   // Form States untuk RSVP
   const [form, setForm] = useState({
@@ -119,6 +120,7 @@ export default function App() {
     setComments([newEntry, ...comments]);
     setForm({ name: guestName !== "Tamu Undangan" ? guestName : "", attendance: "Hadir", message: "" });
     setSubmittingRSVP(false);
+    setRsvpTab("comments");
     alert(result?.message || "Terima kasih atas doa dan konfirmasi kehadiran Anda!");
   };
 
@@ -158,156 +160,190 @@ export default function App() {
               {/* Kisah Cinta (Story) */}
               <Story />
 
-              {/* Galeri Prewedding */}
+              {/* Bagian 6: Galeri Prewedding (ROTATE / FLIPPED - bg1-flipped.webp) */}
+              {/* Pas 1 layar (min-h-screen) sehingga background tajam & rasio 9:16 asli */}
               <section
                 id="gallery"
-                className="py-20 px-6 text-center max-w-md mx-auto relative overflow-hidden bg-cover bg-center"
+                className="min-h-screen w-full py-16 px-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
               >
-                <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
-                  Moments
-                </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
-                  Galeri Bahagia
-                </h2>
-                <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-8" />
+                <div className="max-w-md w-full flex flex-col items-center">
+                  <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
+                    Moments
+                  </span>
+                  <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
+                    Galeri Bahagia
+                  </h2>
+                  <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-2 mb-6" />
 
-                {/* Grid Galeri Elegan */}
-                <div className="grid grid-cols-2 gap-3">
-                  {weddingData.gallery.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className={`relative overflow-hidden rounded-2xl shadow-sm cursor-pointer group ${
-                        idx === 0 || idx === 3 ? "col-span-2 aspect-[16/10]" : "aspect-[4/5]"
-                      }`}
-                      onClick={() => setActiveLightbox(img.url)}
-                    >
-                      <img
-                        src={img.url}
-                        alt={img.caption || `Galeri ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 text-left">
-                        <span className="text-white text-[11px] font-medium drop-shadow">
-                          {img.caption}
-                        </span>
+                  {/* Grid Galeri Elegan 4 Foto Compact Pas Layar */}
+                  <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs">
+                    {weddingData.gallery.slice(0, 4).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative overflow-hidden rounded-2xl shadow-md cursor-pointer group aspect-[4/5] border border-white/20"
+                        onClick={() => setActiveLightbox(img.url)}
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.caption || `Galeri ${idx + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 text-left">
+                          <span className="text-white text-[10px] font-medium drop-shadow line-clamp-1">
+                            {img.caption}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] text-white/60 mt-3 italic">
+                    Ketuk foto untuk memperbesar
+                  </p>
                 </div>
               </section>
 
               {/* Milestone Kado & Pembayaran Online Native */}
               <GiftSection />
 
-              {/* RSVP & Buku Tamu */}
+              {/* Bagian 8: RSVP & Buku Tamu (ROTATE / FLIPPED - bg1-flipped.webp) */}
+              {/* Pas 1 layar (min-h-screen) dengan Tab Switcher agar background tidak ter-zoom/pecah */}
               <section
                 id="rsvp"
-                className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden bg-cover bg-center"
+                className="min-h-screen w-full py-16 px-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
               >
-                <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
-                  Wishes & Greetings
-                </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
-                  RSVP & Doa Restu
-                </h2>
-                <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-8" />
+                <div className="max-w-md w-full flex flex-col items-center">
+                  <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
+                    Wishes & Greetings
+                  </span>
+                  <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
+                    RSVP & Doa Restu
+                  </h2>
+                  <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-2 mb-4" />
 
-                {/* Form Input RSVP */}
-                <form
-                  onSubmit={handleRSVPSubmit}
-                  className="glass-card p-6 rounded-3xl text-left shadow-sm border border-secondary/20"
-                >
-                  <div className="mb-4">
-                    <label className="text-[11px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
-                      Nama Anda
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Masukkan nama lengkap Anda"
-                      className="w-full px-4 py-2.5 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-sm text-charcoal"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="text-[11px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
-                      Konfirmasi Kehadiran
-                    </label>
-                    <select
-                      className="w-full px-4 py-2.5 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-sm text-charcoal"
-                      value={form.attendance}
-                      onChange={(e) => setForm({ ...form, attendance: e.target.value })}
+                  {/* Tab Switcher: Form vs Komentar Tamu */}
+                  <div className="flex gap-2 p-1.5 rounded-2xl bg-white/20 backdrop-blur-md border border-white/20 mb-4 w-full max-w-xs shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setRsvpTab("form")}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+                        rsvpTab === "form"
+                          ? "bg-secondary text-primary shadow-md"
+                          : "text-white/80 hover:text-white"
+                      }`}
                     >
-                      <option value="Hadir">🎉 Insya Allah Hadir</option>
-                      <option value="Tidak Hadir">🙏 Mohon Maaf Belum Bisa Hadir</option>
-                      <option value="Masih Ragu">⏳ Masih Ragu / Belum Pasti</option>
-                    </select>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="text-[11px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
-                      Ucapan & Doa Restu
-                    </label>
-                    <textarea
-                      rows="4"
-                      required
-                      placeholder="Tuliskan ucapan dan doa terbaik untuk kedua mempelai..."
-                      className="w-full px-4 py-2.5 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-sm text-charcoal resize-none leading-relaxed"
-                      value={form.message}
-                      onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submittingRSVP}
-                    className="w-full py-3.5 bg-secondary text-primary font-semibold rounded-xl text-xs tracking-wider uppercase shadow-md hover:bg-secondary/90 cursor-pointer active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {submittingRSVP ? (
-                      <span>MENGIRIMKAN DOA...</span>
-                    ) : (
-                      <span>KIRIM UCAPAN DOA RESTU 💌</span>
-                    )}
-                  </button>
-                </form>
-
-                {/* List Ucapan Tamu */}
-                <div className="mt-8 max-h-96 overflow-y-auto text-left flex flex-col gap-3 pr-1">
-                  {comments.map((c, i) => (
-                    <div
-                      key={i}
-                      className="p-4 bg-white/70 border border-secondary/15 rounded-2xl text-sm shadow-xs"
+                      ✍️ Kirim Ucapan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRsvpTab("comments")}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+                        rsvpTab === "comments"
+                          ? "bg-secondary text-primary shadow-md"
+                          : "text-white/80 hover:text-white"
+                      }`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-semibold text-secondary text-xs">
-                          {c.name}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            c.attendance === "Hadir"
-                              ? "bg-secondary/10 text-secondary border border-secondary/20"
-                              : "bg-accent/15 text-accent-dark border border-accent/25"
-                          }`}
-                        >
-                          {c.attendance}
-                        </span>
+                      💌 Doa Tamu ({comments.length})
+                    </button>
+                  </div>
+
+                  {/* Tab 1: Form Input RSVP */}
+                  {rsvpTab === "form" && (
+                    <form
+                      onSubmit={handleRSVPSubmit}
+                      className="glass-card p-5 rounded-3xl text-left shadow-lg border border-secondary/20 w-full max-w-xs animate-fade-in"
+                    >
+                      <div className="mb-3">
+                        <label className="text-[10px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
+                          Nama Anda
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Nama lengkap Anda"
+                          className="w-full px-3.5 py-2 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-xs text-charcoal"
+                          value={form.name}
+                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        />
                       </div>
-                      <p className="text-charcoal/80 leading-relaxed text-xs">
-                        "{c.message}"
-                      </p>
+
+                      <div className="mb-3">
+                        <label className="text-[10px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
+                          Konfirmasi Kehadiran
+                        </label>
+                        <select
+                          className="w-full px-3.5 py-2 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-xs text-charcoal"
+                          value={form.attendance}
+                          onChange={(e) => setForm({ ...form, attendance: e.target.value })}
+                        >
+                          <option value="Hadir">🎉 Insya Allah Hadir</option>
+                          <option value="Tidak Hadir">🙏 Mohon Maaf Belum Bisa</option>
+                          <option value="Masih Ragu">⏳ Belum Pasti</option>
+                        </select>
+                      </div>
+
+                      <div className="mb-3.5">
+                        <label className="text-[10px] font-semibold uppercase text-charcoal/70 tracking-wider block mb-1">
+                          Ucapan & Doa Restu
+                        </label>
+                        <textarea
+                          rows="3"
+                          required
+                          placeholder="Tuliskan ucapan dan doa terbaik..."
+                          className="w-full px-3.5 py-2 bg-white/80 border border-secondary/25 rounded-xl focus:outline-none focus:border-secondary text-xs text-charcoal resize-none leading-relaxed"
+                          value={form.message}
+                          onChange={(e) => setForm({ ...form, message: e.target.value })}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={submittingRSVP}
+                        className="w-full py-2.5 bg-secondary text-primary font-semibold rounded-xl text-xs tracking-wider uppercase shadow-md hover:bg-secondary/90 cursor-pointer active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        {submittingRSVP ? "MENGIRIMKAN..." : "KIRIM UCAPAN DOA 💌"}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Tab 2: List Doa Tamu Undangan */}
+                  {rsvpTab === "comments" && (
+                    <div className="w-full max-w-xs max-h-[300px] overflow-y-auto text-left flex flex-col gap-2.5 pr-1 animate-fade-in">
+                      {comments.map((c, i) => (
+                        <div
+                          key={i}
+                          className="p-3.5 bg-white/80 backdrop-blur-sm border border-secondary/15 rounded-2xl text-xs shadow-xs"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-secondary text-xs">
+                              {c.name}
+                            </span>
+                            <span
+                              className={`text-[8px] font-bold px-2 py-0.5 rounded-full ${
+                                c.attendance === "Hadir"
+                                ? "bg-secondary/10 text-secondary border border-secondary/20"
+                                : "bg-accent/15 text-accent-dark border border-accent/25"
+                              }`}
+                            >
+                              {c.attendance}
+                            </span>
+                          </div>
+                          <p className="text-charcoal/80 leading-relaxed text-[11px]">
+                            "{c.message}"
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </section>
 
-              {/* Footer Penutup */}
+              {/* Bagian 9: Footer Penutup (NORMAL - bg1.webp) */}
               <footer
-                className="py-16 text-center text-xs text-charcoal/70 border-t border-accent/20 px-6 relative overflow-hidden bg-cover bg-center"
+                className="py-16 text-center text-xs text-charcoal/80 px-6 relative overflow-hidden bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: "url('/images/bg1.webp')" }}
               >
                 <div className="w-10 h-10 rounded-full border border-accent/40 flex items-center justify-center text-accent text-xs mx-auto mb-3 font-serif">
@@ -316,12 +352,12 @@ export default function App() {
                 <h3 className="font-serif text-2xl text-secondary font-semibold mb-2">
                   {weddingData.couple.groom.shortName} & {weddingData.couple.bride.shortName}
                 </h3>
-                <p className="text-[11px] text-charcoal/60 max-w-xs mx-auto leading-relaxed mb-6 italic">
+                <p className="text-[11px] text-charcoal/75 max-w-xs mx-auto leading-relaxed mb-6 italic">
                   Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i
                   berkenan hadir dan memberikan doa restu.
                 </p>
                 <div className="w-12 h-[1px] bg-accent/40 mx-auto mb-4" />
-                <p className="text-[10px] text-charcoal/40 font-mono tracking-wider">
+                <p className="text-[10px] text-charcoal/50 font-mono tracking-wider">
                   © 2026 {weddingData.couple.groom.shortName} & {weddingData.couple.bride.shortName} Wedding Invitation
                 </p>
               </footer>

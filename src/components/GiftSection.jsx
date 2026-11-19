@@ -64,7 +64,8 @@ export default function GiftSection() {
   const [copiedField, setCopiedField] = useState(null);
   const [simulating, setSimulating] = useState(false);
 
-  // Accordion status untuk amplop langsung & kado fisik
+  // Accordion status & Tab switcher untuk amplop langsung, patungan, & kado fisik
+  const [activeGiftTab, setActiveGiftTab] = useState("direct");
   const [showDirectAccounts, setShowDirectAccounts] = useState(false);
   const [showShippingAddress, setShowShippingAddress] = useState(false);
 
@@ -251,218 +252,178 @@ export default function GiftSection() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  // Bagian 7: Tanda Kasih (NORMAL - bg1.webp)
+  // Pas 1 layar (min-h-screen) dengan Tab Switcher ringkas agar background tidak ter-zoom/pecah
   return (
     <section
       id="hadiah"
-      className="py-20 px-6 max-w-md mx-auto text-center scroll-mt-10 relative overflow-hidden bg-cover bg-center"
+      className="min-h-screen w-full py-16 px-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/images/bg1.webp')" }}
     >
-      {/* Header Section */}
-      <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
-        Wedding Gift & Milestone
-      </span>
-      <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
-        Tanda Kasih
-      </h2>
-      <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-3 mb-6" />
+      <div className="max-w-md w-full flex flex-col items-center">
+        {/* Header Section */}
+        <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
+          Wedding Gift & Milestone
+        </span>
+        <h2 className="font-serif text-3xl md:text-4xl text-secondary font-medium tracking-wide">
+          Tanda Kasih
+        </h2>
+        <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-2 mb-3" />
 
-      <p className="text-xs text-charcoal/70 max-w-sm mx-auto mb-10 leading-relaxed">
-        Doa restu Anda adalah karunia terindah bagi kami. Namun jika Anda ingin
-        memberikan tanda cinta, Anda dapat turut berpartisipasi patungan kado
-        impian kami atau mengirimkannya langsung di bawah ini.
-      </p>
+        <p className="text-[11px] text-charcoal/75 max-w-xs mx-auto mb-4 leading-relaxed">
+          Doa restu Anda adalah karunia terindah bagi kami. Bagi yang ingin mengirimkan tanda kasih:
+        </p>
 
-      {/* Grid Kartu Target Hadiah Milestone */}
-      <div className="flex flex-col gap-6 text-left">
-        {gifts.map((item) => {
-          const percent = Math.min(
-            Math.round((item.collected / item.target) * 100),
-            100,
-          );
-          const remaining = Math.max(item.target - item.collected, 0);
+        {/* Tab Switcher: Rekening, Patungan, Kado Fisik */}
+        <div className="flex gap-1.5 p-1 rounded-2xl bg-secondary/10 backdrop-blur-md border border-secondary/15 mb-4 w-full max-w-xs shadow-xs">
+          <button
+            type="button"
+            onClick={() => setActiveGiftTab("direct")}
+            className={`flex-1 py-1.5 rounded-xl text-[11px] font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+              activeGiftTab === "direct"
+                ? "bg-secondary text-primary shadow-sm"
+                : "text-charcoal/65 hover:text-charcoal"
+            }`}
+          >
+            💳 Rekening
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveGiftTab("milestone")}
+            className={`flex-1 py-1.5 rounded-xl text-[11px] font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+              activeGiftTab === "milestone"
+                ? "bg-secondary text-primary shadow-sm"
+                : "text-charcoal/65 hover:text-charcoal"
+            }`}
+          >
+            🎁 Patungan
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveGiftTab("shipping")}
+            className={`flex-1 py-1.5 rounded-xl text-[11px] font-semibold tracking-wider transition-all duration-300 cursor-pointer ${
+              activeGiftTab === "shipping"
+                ? "bg-secondary text-primary shadow-sm"
+                : "text-charcoal/65 hover:text-charcoal"
+            }`}
+          >
+            📦 Kirim Kado
+          </button>
+        </div>
 
-          return (
-            <div
-              key={item.id}
-              className="glass-card p-6 rounded-3xl flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300 border border-secondary/15 hover:border-accent/40"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center text-2xl shadow-inner border border-secondary/10">
-                    {item.icon}
-                  </div>
-                  <span className="text-[10px] tracking-wider font-semibold uppercase text-accent-dark bg-accent/15 px-3 py-1 rounded-full border border-accent/25">
-                    {item.category}
+        {/* Tab 1: Transfer Bank Langsung */}
+        {activeGiftTab === "direct" && (
+          <div className="w-full max-w-xs flex flex-col gap-2.5 animate-fade-in">
+            {weddingData.gift.directAccounts.map((acc, i) => (
+              <div
+                key={i}
+                className="p-3.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-secondary/20 shadow-sm flex items-center justify-between text-left"
+              >
+                <div>
+                  <span className="text-[10px] font-bold text-accent uppercase block tracking-wider">
+                    Bank {acc.bankName}
+                  </span>
+                  <span className="font-mono text-sm font-bold text-secondary tracking-wider block">
+                    {acc.accountNumber}
+                  </span>
+                  <span className="text-[10px] text-charcoal/65 block">
+                    a.n. {acc.accountHolder}
                   </span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(acc.accountNumber, `direct-${i}`)}
+                  className="px-3 py-1.5 bg-secondary text-primary text-[10px] font-bold rounded-xl hover:bg-secondary/90 transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  {copiedField === `direct-${i}` ? "Tersalin! ✓" : "Salin No"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-                <h3 className="font-serif text-xl font-semibold text-secondary mb-1">
-                  {item.title}
-                </h3>
-                <p className="text-[11px] text-charcoal/65 mb-4 leading-normal">
-                  {item.description}
-                </p>
-
-                {/* Detail Progres Terkumpul */}
-                <div className="bg-white/60 p-3.5 rounded-2xl border border-secondary/10 mb-3">
-                  <div className="flex justify-between items-baseline text-xs mb-1">
-                    <span className="text-charcoal/60 text-[11px]">Terkumpul</span>
-                    <span className="font-bold text-secondary">
-                      {formatRupiah(item.collected)}
+        {/* Tab 2: Patungan Kado Milestone */}
+        {activeGiftTab === "milestone" && (
+          <div className="w-full max-w-xs flex flex-col gap-3 max-h-[290px] overflow-y-auto pr-1 animate-fade-in">
+            {gifts.map((item) => {
+              const percent = Math.min(
+                Math.round((item.collected / item.target) * 100),
+                100,
+              );
+              return (
+                <div
+                  key={item.id}
+                  className="glass-card p-4 rounded-2xl border border-secondary/15 shadow-sm text-left flex flex-col gap-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{item.icon}</span>
+                      <h4 className="font-serif text-sm font-semibold text-secondary">
+                        {item.title}
+                      </h4>
+                    </div>
+                    <span className="text-[9px] font-bold text-accent bg-accent/15 px-2 py-0.5 rounded-full">
+                      {percent}%
                     </span>
                   </div>
-                  <div className="flex justify-between items-baseline text-[11px] text-charcoal/60 mb-2">
-                    <span>Target</span>
-                    <span>{formatRupiah(item.target)}</span>
-                  </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full bg-charcoal/10 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-charcoal/10 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-secondary to-accent h-full rounded-full transition-all duration-700 ease-out"
+                      className="bg-gradient-to-r from-secondary to-accent h-full rounded-full"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between text-[11px] px-1">
-                  <span className="font-bold text-accent">
-                    {percent}% Terpenuhi
-                  </span>
-                  <span className="text-charcoal/50 text-[10px]">
-                    {remaining > 0
-                      ? `Sisa ${formatRupiah(remaining)}`
-                      : "Target Tercapai! 🎉"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Tombol Aksi Ikut Patungan */}
-              <button
-                onClick={() => handleOpenModal(item)}
-                className="mt-5 w-full py-3 bg-secondary text-primary font-semibold text-xs tracking-wider rounded-xl hover:bg-secondary/90 transition-all duration-200 shadow-sm cursor-pointer active:scale-98 flex items-center justify-center gap-2"
-              >
-                <span>IKUT PATUNGAN HADIAH</span>
-                <span>→</span>
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Bagian Tambahan: Rekening Langsung & Kirim Kado Fisik */}
-      <div className="mt-12 flex flex-col gap-4 text-left">
-        {/* Accordion 1: Transfer Rekening Bank Langsung */}
-        <div className="glass-card rounded-2xl border border-secondary/20 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => setShowDirectAccounts(!showDirectAccounts)}
-            className="w-full p-4 flex items-center justify-between text-left font-medium text-xs text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="text-base">💳</span>
-              <div>
-                <h4 className="font-semibold text-charcoal text-xs">
-                  Transfer Rekening Langsung
-                </h4>
-                <p className="text-[10px] text-charcoal/60">
-                  Untuk tamu yang ingin transfer manual tanpa payment gateway
-                </p>
-              </div>
-            </div>
-            <span className="text-xs text-accent font-bold">
-              {showDirectAccounts ? "▲" : "▼"}
-            </span>
-          </button>
-
-          {showDirectAccounts && (
-            <div className="p-4 pt-1 border-t border-secondary/15 flex flex-col gap-3 animate-fade-in">
-              {weddingData.gift.directAccounts.map((acc, i) => (
-                <div
-                  key={i}
-                  className="p-3 bg-white/70 rounded-xl border border-secondary/15 flex items-center justify-between"
-                >
-                  <div>
-                    <span className="text-[10px] font-bold text-accent uppercase block">
-                      Bank {acc.bankName}
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-charcoal/60">
+                      {formatRupiah(item.collected)} / {formatRupiah(item.target)}
                     </span>
-                    <span className="font-mono text-sm font-bold text-secondary tracking-wider block">
-                      {acc.accountNumber}
-                    </span>
-                    <span className="text-[10px] text-charcoal/60 block">
-                      a.n. {acc.accountHolder}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenModal(item)}
+                      className="px-2.5 py-1 bg-secondary text-primary font-bold text-[9px] rounded-lg hover:bg-secondary/90 transition-all cursor-pointer"
+                    >
+                      Ikut Patungan →
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(acc.accountNumber, `direct-${i}`)}
-                    className="px-3 py-1.5 bg-secondary text-primary text-[10px] font-bold rounded-lg hover:bg-secondary/90 transition-all cursor-pointer"
-                  >
-                    {copiedField === `direct-${i}` ? "Tersalin! ✓" : "Salin"}
-                  </button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
-        {/* Accordion 2: Kirim Kado Fisik ke Alamat */}
-        <div className="glass-card rounded-2xl border border-secondary/20 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => setShowShippingAddress(!showShippingAddress)}
-            className="w-full p-4 flex items-center justify-between text-left font-medium text-xs text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="text-base">🎁</span>
-              <div>
-                <h4 className="font-semibold text-charcoal text-xs">
-                  Kirim Kado Fisik
-                </h4>
-                <p className="text-[10px] text-charcoal/60">
-                  Alamat pengiriman kado ke kediaman mempelai
-                </p>
-              </div>
-            </div>
-            <span className="text-xs text-accent font-bold">
-              {showShippingAddress ? "▲" : "▼"}
+        {/* Tab 3: Alamat Kirim Kado Fisik */}
+        {activeGiftTab === "shipping" && (
+          <div className="w-full max-w-xs p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-secondary/20 shadow-sm text-left animate-fade-in text-xs">
+            <span className="text-[10px] font-bold text-accent uppercase block mb-1">
+              Penerima Kado:
             </span>
-          </button>
-
-          {showShippingAddress && (
-            <div className="p-4 pt-1 border-t border-secondary/15 flex flex-col gap-2 animate-fade-in text-xs">
-              <div className="p-3 bg-white/70 rounded-xl border border-secondary/15">
-                <span className="text-[10px] font-bold text-accent uppercase block mb-1">
-                  Penerima:
-                </span>
-                <p className="font-semibold text-secondary mb-1">
-                  {weddingData.gift.shippingAddress.recipient} (
-                  {weddingData.gift.shippingAddress.phone})
-                </p>
-                <p className="text-[11px] text-charcoal/80 leading-relaxed mb-3">
-                  {weddingData.gift.shippingAddress.address}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleCopy(
-                      weddingData.gift.shippingAddress.address,
-                      "shipping"
-                    )
-                  }
-                  className="w-full py-2 bg-secondary/10 hover:bg-secondary text-secondary hover:text-white text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center block"
-                >
-                  {copiedField === "shipping"
-                    ? "Alamat Tersalin! ✓"
-                    : "Salin Alamat Lengkap"}
-                </button>
-              </div>
-              <span className="text-[10px] text-charcoal/50 italic text-center block">
-                {weddingData.gift.shippingAddress.notes}
-              </span>
-            </div>
-          )}
-        </div>
+            <p className="font-semibold text-secondary mb-1 text-xs">
+              {weddingData.gift.shippingAddress.recipient} (
+              {weddingData.gift.shippingAddress.phone})
+            </p>
+            <p className="text-[11px] text-charcoal/75 leading-relaxed mb-3">
+              {weddingData.gift.shippingAddress.address}
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                handleCopy(
+                  weddingData.gift.shippingAddress.address,
+                  "shipping"
+                )
+              }
+              className="w-full py-2 bg-secondary text-primary text-[11px] font-bold rounded-xl transition-all cursor-pointer text-center block shadow-xs active:scale-98"
+            >
+              {copiedField === "shipping"
+                ? "Alamat Tersalin! ✓"
+                : "Salin Alamat Lengkap"}
+            </button>
+            <span className="text-[10px] text-charcoal/50 italic text-center block mt-2">
+              {weddingData.gift.shippingAddress.notes}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* MODAL NATIVE: QRIS & VIRTUAL ACCOUNT 100% DI WEBSITE */}
