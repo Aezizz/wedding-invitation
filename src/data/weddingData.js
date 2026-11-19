@@ -11,25 +11,24 @@ export const weddingData = {
   couple: {
     title: "The Wedding of",
     groom: {
-      shortName: "Resky",
-      fullName: "Resky Oakwood, S.Kom.",
+      shortName: "Rama",
+      fullName: "Rama Rizqullah Fahrizal, S.T, M.M ",
       title: "Putra Pertama dari",
-      fatherName: "Bapak Gunawan Oakwood",
-      motherName: "Ibu Sri Maple",
-      instagram: "reskyoak",
+      fatherName: "Bapak dr. Yarra Rendy Fahrizal MARS.",
+      motherName: "Ibu dr. Irma Kurniati M.biomed ",
+      instagram: "galaxyeyes16",
       photo:
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=80",
       bio: "Seorang pengembara teknologi yang akhirnya menemukan pelabuhan terakhirnya di hati sang bidadari.",
     },
     bride: {
-      shortName: "Hana",
-      fullName: "Hana Tulip, S.T.",
-      title: "Putri Kedua dari",
-      fatherName: "Bapak Ahmad Tulip",
-      motherName: "Ibu Siti Rose",
-      instagram: "hanatulip",
-      photo:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80",
+      shortName: "Apsari",
+      fullName: "Apsari Dita Indah Rahayu, S.T.",
+      title: "Putri pertama dari",
+      fatherName: "Bapak Sutopo (alm)",
+      motherName: "Ibu Endang Murniyati, M. Pd",
+      instagram: "apsarid",
+      photo: "/images/FotoPrewed_4.webp",
       bio: "Pecinta seni dan kesederhanaan yang percaya bahwa cinta sejati selalu menemukan jalannya pulang.",
     },
   },
@@ -106,30 +105,39 @@ export const weddingData = {
     },
   ],
 
-  // Galeri Foto Prewedding
+  // Galeri Foto Prewedding (Mendukung Single Portrait & Duo Landscape Stack)
   gallery: [
     {
-      url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+      type: "single",
+      url: "/images/FotoPrewed_1.webp",
       caption: "Cinta Dalam Keheningan",
     },
     {
-      url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
+      type: "single",
+      url: "/images/FotoPrewed_2.webp",
       caption: "Langkah Pertama",
     },
     {
-      url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
-      caption: "Tawa dan Peluk",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
+      type: "single",
+      url: "/images/FotoPrewed_4.webp",
       caption: "Menatap Masa Depan",
     },
     {
-      url: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=900&q=80",
-      caption: "Satu Detak Jantung",
+      type: "duo",
+      photos: [
+        {
+          url: "/images/FotoPrewed_5.webp",
+          caption: "Satu Detak Jantung",
+        },
+        {
+          url: "/images/FotoPrewed_3.webp",
+          caption: "Tawa dan Peluk",
+        },
+      ],
     },
     {
-      url: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80",
+      type: "single",
+      url: "/images/FotoPrewed_6.webp",
       caption: "Menuju Pelaminan",
     },
   ],

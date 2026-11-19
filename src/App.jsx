@@ -8,6 +8,10 @@ import GiftSection from "./components/GiftSection";
 import useScrollSpy from "./hooks/useScrollSpy";
 import { submitRSVP, getRSVPs } from "./utils/api";
 import { weddingData } from "./data/weddingData";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCards } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/effect-cards";
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,10 +75,10 @@ export default function App() {
     loadRSVPs();
   }, []);
 
-  // Kunci scroll saat cover opening masih aktif
+  // Kunci scroll saat cover opening masih aktif ATAU saat lightbox foto terbuka
   useEffect(() => {
-    document.body.style.overflow = !isOpen ? "hidden" : "unset";
-  }, [isOpen]);
+    document.body.style.overflow = !isOpen || Boolean(activeLightbox) ? "hidden" : "unset";
+  }, [isOpen, activeLightbox]);
 
   // Buka Undangan & Putar Musik
   const handleOpenInvitation = () => {
@@ -134,7 +138,8 @@ export default function App() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-primary select-none w-full flex justify-center">
+    <>
+      <div className="relative min-h-screen bg-primary select-none w-full flex justify-center">
       <div className="w-full max-w-[440px] shadow-2xl min-h-screen bg-primary relative">
         {/* Audio Element Background */}
         <audio ref={audioRef} loop src={weddingData.media.musicUrl} preload="auto" />
@@ -161,46 +166,111 @@ export default function App() {
               <Story />
 
               {/* Bagian 6: Galeri Prewedding (ROTATE / FLIPPED - bg1-flipped.webp) */}
-              {/* Pas 1 layar (min-h-screen) sehingga background tajam & rasio 9:16 asli */}
+              {/* Swipeable Card Stack (Card Deck) Interaction via Swiper */}
               <section
                 id="gallery"
-                className="min-h-screen w-full py-16 px-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
+                className="min-h-screen w-full py-12 px-4 text-center flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: "url('/images/bg1-flipped.webp')" }}
               >
-                <div className="max-w-md w-full flex flex-col items-center">
+                <div className="w-full max-w-md flex flex-col items-center">
                   <span className="text-xs tracking-[0.3em] font-medium text-accent uppercase block mb-1">
                     Moments
                   </span>
                   <h2 className="font-serif text-3xl md:text-4xl text-accent-light font-medium tracking-wide drop-shadow-sm">
                     Galeri Bahagia
                   </h2>
-                  <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-2 mb-6" />
+                  <div className="w-12 h-[1px] bg-accent/50 mx-auto mt-2 mb-2" />
 
-                  {/* Grid Galeri Elegan 4 Foto Compact Pas Layar */}
-                  <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs">
-                    {weddingData.gallery.slice(0, 4).map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative overflow-hidden rounded-2xl shadow-md cursor-pointer group aspect-[4/5] border border-white/20"
-                        onClick={() => setActiveLightbox(img.url)}
-                      >
-                        <img
-                          src={img.url}
-                          alt={img.caption || `Galeri ${idx + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 text-left">
-                          <span className="text-white text-[10px] font-medium drop-shadow line-clamp-1">
-                            {img.caption}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Swiper Card Stack Container */}
+                  <div className="w-[270px] sm:w-[310px] aspect-[3/4] mx-auto py-8">
+                    <Swiper
+                      effect="cards"
+                      grabCursor={true}
+                      modules={[EffectCards]}
+                      className="w-full h-full"
+                    >
+                      {weddingData.gallery.map((item, idx) => {
+                        // Jika tipe kartu Duo Landscape (2 foto atas-bawah dalam 1 kartu)
+                        if (item.type === "duo" && item.photos?.length >= 2) {
+                          const topPhoto = item.photos[0];
+                          const botPhoto = item.photos[1];
+                          return (
+                            <SwiperSlide
+                              key={idx}
+                              className="rounded-2xl border border-[#D4A359]/40 shadow-xl overflow-hidden relative bg-charcoal/20 flex flex-col"
+                            >
+                              {/* Foto Landscape Atas */}
+                              <div
+                                className="relative w-full h-1/2 overflow-hidden cursor-pointer group/top border-b border-[#D4A359]/30"
+                                onClick={() => setActiveLightbox(topPhoto.url)}
+                              >
+                                <img
+                                  src={topPhoto.url}
+                                  alt={topPhoto.caption}
+                                  className="w-full h-full object-cover select-none group-hover/top:scale-105 transition-transform duration-500"
+                                  loading="lazy"
+                                />
+                                {topPhoto.caption && (
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-2.5 text-left pointer-events-none">
+                                    <span className="text-white text-[11px] font-serif font-medium drop-shadow-md tracking-wide">
+                                      {topPhoto.caption}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Foto Landscape Bawah */}
+                              <div
+                                className="relative w-full h-1/2 overflow-hidden cursor-pointer group/bot"
+                                onClick={() => setActiveLightbox(botPhoto.url)}
+                              >
+                                <img
+                                  src={botPhoto.url}
+                                  alt={botPhoto.caption}
+                                  className="w-full h-full object-cover select-none group-hover/bot:scale-105 transition-transform duration-500"
+                                  loading="lazy"
+                                />
+                                {botPhoto.caption && (
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-2.5 text-left pointer-events-none">
+                                    <span className="text-white text-[11px] font-serif font-medium drop-shadow-md tracking-wide">
+                                      {botPhoto.caption}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </SwiperSlide>
+                          );
+                        }
+
+                        // Kartu Foto Single Portrait Normal
+                        return (
+                          <SwiperSlide
+                            key={idx}
+                            className="rounded-2xl border border-[#D4A359]/40 shadow-xl overflow-hidden cursor-pointer relative group bg-charcoal/20"
+                            onClick={() => setActiveLightbox(item.url)}
+                          >
+                            <img
+                              src={item.url}
+                              alt={item.caption || `Galeri ${idx + 1}`}
+                              className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                            />
+                            {item.caption && (
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-4 text-left pointer-events-none">
+                                <span className="text-white text-xs font-serif font-medium drop-shadow-md tracking-wide">
+                                  {item.caption}
+                                </span>
+                              </div>
+                            )}
+                          </SwiperSlide>
+                        );
+                      })}
+                    </Swiper>
                   </div>
 
-                  <p className="text-[10px] text-white/60 mt-3 italic">
-                    Ketuk foto untuk memperbesar
+                  {/* Subtle Swipe Hint */}
+                  <p className="text-[11px] text-white/70 mt-2 italic flex items-center justify-center gap-1.5">
+                    <span>Geser kartu untuk melihat foto lainnya</span>
                   </p>
                 </div>
               </section>
@@ -396,29 +466,36 @@ export default function App() {
                 {isPlaying ? "🎵" : "🔇"}
               </div>
             </button>
-
-            {/* 5. Lightbox Modal Gallery Zoom */}
-            {activeLightbox && (
-              <div
-                className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-                onClick={() => setActiveLightbox(null)}
-              >
-                <img
-                  src={activeLightbox}
-                  alt="Full Zoom"
-                  className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border border-white/20"
-                />
-                <button
-                  onClick={() => setActiveLightbox(null)}
-                  className="absolute top-5 right-5 text-white/80 hover:text-white text-3xl font-light w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>
     </div>
+
+    {/* 5. Lightbox Modal Gallery Zoom - Backdrop transparan tembus pandang dengan animasi smooth zoom */}
+    {activeLightbox && (
+      <div
+        className="fixed inset-0 z-50 bg-black/45 backdrop-blur-md flex items-center justify-center p-4 animate-lightbox-backdrop select-none"
+        onClick={() => setActiveLightbox(null)}
+      >
+        <div
+          className="relative max-w-full max-h-[85vh] flex items-center justify-center animate-lightbox-image"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            src={activeLightbox}
+            alt="Full Zoom"
+            className="max-w-full max-h-[85vh] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] object-contain border border-white/25"
+          />
+          <button
+            onClick={() => setActiveLightbox(null)}
+            className="absolute -top-3 -right-3 sm:top-3 sm:right-3 text-white/90 hover:text-white text-xl font-light w-9 h-9 rounded-full bg-black/50 hover:bg-black/75 backdrop-blur-md border border-white/30 flex items-center justify-center cursor-pointer shadow-lg transition-transform active:scale-95"
+            title="Tutup"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
